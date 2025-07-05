@@ -1,0 +1,28 @@
+.sidebarNavLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.68s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.navLink .lucide {
+  margin-right: 0.75rem;
+  vertical-align: middle;
+  position: relative;
+}
+
+.navLink:hover {
+  background-color: #f3f4f6; 
+  color: #3b277a;
+  font-weight: 600;
+  transform: scale(1.05);
+}
+
+.navLink {
+  transition: transform 0.4s ease !important;
+}

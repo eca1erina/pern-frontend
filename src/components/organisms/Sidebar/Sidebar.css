@@ -1,0 +1,110 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  height: 100vh;        
+  position: fixed;
+  top: 0;               
+  left: 0;              
+  background: linear-gradient(135deg, #f6f6ff 60%, #e6e6fa 100%);
+  color: #171717;
+  padding: 2rem 1.5rem;
+  border-radius: 0;     
+  box-shadow: 0 8px 32px 0 rgba(80, 85, 155, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+  border: none;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: sidebar-slide-in 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s forwards;
+}
+
+@keyframes sidebar-slide-in {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.logoContainer {
+  margin-bottom: 2.5rem;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav {
+  flex-grow: 1;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  transition: transform 0.5s ease;
+}
+
+.navList li a {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  color: #171717;
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  transition: background 0.25s cubic-bezier(0.4,0,0.2,1), color 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+.navList li a.active, .navList li a.active:focus {
+  background: #ede9fe;
+  color: #6c63ff;
+  transition: background 0.25s cubic-bezier(0.4,0,0.2,1), color 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.68s cubic-bezier(0.22, 0.61, 0.36, 1);}
+
+.navList li a .lucide {
+  color: #6c63ff;
+  transition: color 0.18s;
+}
+
+.navList li a.active .lucide {
+  color: #3b277a;
+}
+
+.footer {
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #888;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.sidebarNavLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+ 
+}
+
+.sidebarNavLink:hover,
+.sidebarNavLink:focus {
+  background-color: #f3f4f6;
+  color: #3b277a;
+  transform: scale(1.04);
+}
+
+.sidebarNavLink.active {
+  background-color: #ede9fe;
+  color: #6c63ff;
+}

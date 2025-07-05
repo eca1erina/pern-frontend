@@ -1,6 +1,6 @@
-import { ButtonHTMLAttributes, MouseEventHandler } from 'react';
+import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  label: string;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  children: ReactNode;
+  variant?: 'default' | 'active';
 }
