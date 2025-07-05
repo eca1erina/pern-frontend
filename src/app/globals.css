@@ -50,3 +50,50 @@ a {
     color-scheme: dark;
   }
 }
+
+/* Custom Slim Scrollbar with Arrows */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: var(--soft-purple);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary-purple) 60%, var(--soft-purple) 100%);
+  border-radius: 6px;
+  min-height: 24px;
+  min-width: 24px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #7b6cff 60%, #a99cf7 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--soft-purple);
+}
+
+::-webkit-scrollbar-button {
+  width: 6px;
+  height: 6px;
+  background: var(--primary-purple);
+  border-radius: 50%;
+  display: block;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="4,2 7,6 1,6" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:vertical:increment {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="1,2 7,2 4,6" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:decrement {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,4 6,1 6,7" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:increment {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,1 2,7 6,4" fill="white"/></svg>') center/contain no-repeat;
+}

@@ -61,14 +61,18 @@ const Sidebar = () => {
         </ul>
       </nav>
       <div className="footer">
-        <a href="/settings" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#888', marginBottom: 12, textDecoration: 'none' }}>
-          <Icon name="Settings" size={20} />
-          <span style={{ marginLeft: 8 }}>Settings</span>
-        </a>
-        <a href="/logout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#e53e3e', fontWeight: 500, textDecoration: 'none' }}>
-          <Icon name="LogOut" size={20} />
-          <span style={{ marginLeft: 8 }}>Logout</span>
-        </a>
+        <div className="items">
+          <a href="/settings" className="settings-btn">
+            <span className="settings-icon"><Icon name="Settings" size={20} /></span>
+            <span>Settings</span>
+          </a>
+        </div>
+        <div className="items">
+          <a href="/logout" className="logout-btn">
+            <span className="logout-icon"><Icon name="LogOut" size={20} /></span>
+            <span>Logout</span>
+          </a>
+        </div>
       </div>
     </aside>
   );
