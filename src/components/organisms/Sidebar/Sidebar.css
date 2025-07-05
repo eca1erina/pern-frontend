@@ -1,0 +1,121 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  height: 100vh;        
+  position: fixed;
+  top: 0;               
+  left: 0;              
+  background: linear-gradient(135deg, #faf8ff 80%, #f8f6ff 100%);
+  color: var(--header-purple, #3b277a);
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+  border-radius: 0;     
+  box-shadow: 0 2px 24px 0 rgba(123,108,255,0.06);
+  border: none;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+
+.logoContainer {
+  margin-bottom: 2.5rem;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav {
+  flex-grow: 1;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.navList li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.2rem;
+  border-radius: 18px;
+  color: var(--text-gray, #6b7280);
+  font-weight: 500;
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+  background: none;
+  transition: background 0.25s cubic-bezier(0.4,0,0.2,1), color 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+.navList li a:hover,
+.navList li a:focus {
+  background: var(--soft-purple, #ede9fe);
+  color: var(--primary-purple, #7b6cff);
+  transform: scale(1.04);
+}
+
+.navList li a.active, .navList li a.active:focus {
+  background: linear-gradient(120deg, #f4f3ff 60%, #e6eeff 100%);
+  color: #7b6cff;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.navList li a .lucide {
+  color: var(--primary-purple, #7b6cff);
+  transition: color 0.18s;
+}
+
+.navList li a.active .lucide {
+  color: #7b6cff;
+}
+
+.footer {
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #b3b3c6;
+  padding-top: 1.5rem;
+  background: none;
+  border-top: 1px solid var(--border-light, #ede9fe);
+}
+
+.sidebarNavLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+ 
+}
+
+.sidebarNavLink:hover,
+.sidebarNavLink:focus {
+  background-color: #f3f4f6;
+  color: #3b277a;
+  transform: scale(1.04);
+}
+
+.sidebarNavLink.active {
+  background-color: #ede9fe;
+  color: var(--primary-purple, #7b6cff);
+  font-weight: 600;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(123,108,255,0.08);
+}

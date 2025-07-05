@@ -1,6 +1,13 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f6ff;
+  --foreground: #3b277a;
+  --primary-purple: #7b6cff;
+  --soft-purple: #ede9fe;
+  --light-bg: #f8f6ff;
+  --card-bg: #fff;
+  --header-purple: #3b277a;
+  --text-gray: #6b7280;
+  --border-light: #ede9fe;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,9 +24,12 @@ body {
 }
 
 body {
+  background: linear-gradient(135deg, #f8f6ff 60%, #fdf6fa 100%);
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
