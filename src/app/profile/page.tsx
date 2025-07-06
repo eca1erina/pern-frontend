@@ -1,13 +1,13 @@
 'use client';
 
-import styles from './page.module.css';
-import LandingPage from '@pages/LandingPage/LandingPage';
+import ProfilePage from '@pages/ProfilePage/ProfilePage';
+import styles from '../page.module.css';
 
-export default function Home() {
+export default function Profile() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <LandingPage />
+        <ProfilePage />
       </main>
       <footer className={styles.footer}></footer>
     </div>
