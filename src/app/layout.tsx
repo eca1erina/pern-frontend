@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.className} ${geistSans.variable} ${geistMono.variable}`}>
         <div className="app-container">
-          <Sidebar />
+          {/* Sidebar component for navigation */}
           <main className="main-content">{children}</main>
         </div>
       </body>

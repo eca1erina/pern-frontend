@@ -1,6 +1,6 @@
 'use client';
 import React, { FC } from 'react';
-import './InputField.css';
+import '@atoms/InputField/InputField.css';
 import { InputFieldProps } from './IInputField';
 
 export const InputField: FC<InputFieldProps> = ({
