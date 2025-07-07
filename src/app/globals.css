@@ -25,8 +25,14 @@ body {
 }
 
 body {
+  background: linear-gradient(135deg, #f8f6ff 60%, #fdf6fa 100%);
+  color: var(--foreground);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
   margin: 0;
-  background: #f6f4fd;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {

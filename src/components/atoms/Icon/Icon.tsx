@@ -1,35 +1,14 @@
-import { icons } from 'lucide-react';
-import { FC } from 'react';
+import React from 'react';
+import * as LucideIcons from 'lucide-react';
+import { IconProps } from './IIcon';
 
-export interface IconProps {
-    name: keyof typeof icons;
-    color?: string;
-    size?: number;
-    strokeWidth?: number;
-    className?: string;
-}
-
-const Icon: FC<IconProps> = ({
-    name,
-    color,
-    size = 20,
-    strokeWidth,
-    className
-}) => {
-    const LucideIcon = icons[name];
-
-    if(!LucideIcon) {
-        return null;    
-    }
-
-    return (
-        <LucideIcon
-            color={color}
-            size={size}
-            strokeWidth={strokeWidth}   
-            className={className}
-        />
-    );
+const Icon: React.FC<IconProps> = ({ name, size = 20, color = 'currentColor' }) => {
+  const LucideIcon = LucideIcons[name];
+  if (typeof LucideIcon === 'function' || (LucideIcon && typeof LucideIcon === 'object')) {
+    const Component = LucideIcon as React.ElementType;
+    return <Component size={size} color={color} />;
+  }
+  return null;
 };
 
-export default Icon; 
+export default Icon;

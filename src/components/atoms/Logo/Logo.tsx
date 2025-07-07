@@ -1,22 +1,19 @@
-import Link from 'next/link';
+import React from 'react';
 import Image from 'next/image';
-import './Logo.css';
 
-const Logo = () => {
-    return (
-        <Link href="/">
-            <div className="logoContainer">
-                <Image
-                    src="/logoSmall.png"
-                    alt="Logo"
-                    width={40}
-                    height={40}
-                    className="logoImage"
-                />
-                <span className="logoText">Wise Tracker</span>
-            </div>
-        </Link>
-    );
-};
+const Logo: React.FC = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <Image
+      src="/logo.png"
+      alt="Wise Track Logo"
+      style={{ height: 38, width: 38, objectFit: 'contain' }}
+      width={38}
+      height={38}
+    />
+    <span style={{ fontWeight: 700, fontSize: 20, color: '#3b277a' }}>
+      Wise <span style={{ color: '#6c63ff' }}>Track</span>
+    </span>
+  </div>
+);
 
 export default Logo;
