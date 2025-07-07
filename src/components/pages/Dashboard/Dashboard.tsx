@@ -1,7 +1,6 @@
-`use client`;
+'use client';
 
 import './Dashboard.css';
-import Button from '@/components/atoms/Button/Button';
 import React from 'react';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
@@ -16,6 +15,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import Sidebar from '@/components/organisms/Sidebar/Sidebar';
 
 ChartJS.register(
   CategoryScale,
@@ -25,7 +25,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 const lineData = {
@@ -103,8 +103,8 @@ const chartOptions = {
         color: '#a3a3a3',
         font: { size: 13 },
         padding: 8,
-        callback: function(tickValue: string | number) { 
-          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue/1000 + 'k';
+        callback: function (tickValue: string | number) {
+          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
           return tickValue;
         },
       },
@@ -114,45 +114,60 @@ const chartOptions = {
 
 const Dashboard = () => {
   return (
-    <div>
-      <h1 className="header">Dashboard</h1>
-      <div className="overviewGrid">
-        <div className="card">
-          <span className="cardIcon"><PiggyBank /></span>
-          <span className="cardTitle">Total Income</span>
-          <span className="cardValue">$12,000</span>
-        </div>
-        <div className="card">
-          <span className="cardIcon"><Wallet /></span>
-          <span className="cardTitle">Total Expenses</span>
-          <span className="cardValue">$10,000</span>
-        </div>
-        <div className="card">
-          <span className="cardIcon"><Activity /></span>
-          <span className="cardTitle">Net Balance</span>
-          <span className="cardValue">$2,000</span>
-        </div>
-      </div>
-      <div className="chartContainer">
-        <div className="chartHeader">
-          <h2>Total Income</h2>
-          <div className="filterGroup chartFilters">
-            <Button variant="active">1d</Button>
-            <Button variant="default">1w</Button>
-            <Button variant="default">1m</Button>
-            <Button variant="default">1 year</Button>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
+      }}
+    >
+      <Sidebar />
+      <div className="mainContent">
+        <h1 className="header">Dashboard</h1>
+        <div className="overviewGrid">
+          <div className="card">
+            <span className="cardIcon">
+              <PiggyBank />
+            </span>
+            <span className="cardTitle">Total Income</span>
+            <span className="cardValue">$12,000</span>
+          </div>
+          <div className="card">
+            <span className="cardIcon">
+              <Wallet />
+            </span>
+            <span className="cardTitle">Total Expenses</span>
+            <span className="cardValue">$10,000</span>
+          </div>
+          <div className="card">
+            <span className="cardIcon">
+              <Activity />
+            </span>
+            <span className="cardTitle">Net Balance</span>
+            <span className="cardValue">$2,000</span>
           </div>
         </div>
-        <div style={{ width: '100%', height: 340 }}>
-          <Line data={lineData} options={chartOptions} />
+        <div className="chartContainer">
+          <div className="chartHeader">
+            <h2>Total Income</h2>
+            <div className="filterGroup chartFilters">
+              <button className="chartFilter active">1d</button>
+              <button className="chartFilter">1w</button>
+              <button className="chartFilter">1m</button>
+              <button className="chartFilter">1 year</button>
+            </div>
+          </div>
+          <div style={{ width: '100%', height: 340 }}>
+            <Line data={lineData} options={chartOptions} />
+          </div>
         </div>
-      </div>
-      <div className="tableContainer">
-        <div className="chartHeader">
-          <h2>Recent Expenses</h2>
-        </div>
-        <div style={{ width: '100%', height: 220, margin: '0 auto' }}>
-          <Bar data={barData} options={chartOptions} />
+        <div className="tableContainer">
+          <div className="chartHeader">
+            <h2>Recent Expenses</h2>
+          </div>
+          <div style={{ width: '100%', height: 220, margin: '0 auto' }}>
+            <Bar data={barData} options={chartOptions} />
+          </div>
         </div>
       </div>
     </div>

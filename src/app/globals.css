@@ -1,6 +1,13 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f6ff;
+  --foreground: #3b277a;
+  --primary-purple: #7b6cff;
+  --soft-purple: #ede9fe;
+  --light-bg: #f8f6ff;
+  --card-bg: #fff;
+  --header-purple: #3b277a;
+  --text-gray: #6b7280;
+  --border-light: #ede9fe;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,9 +25,12 @@ body {
 }
 
 body {
+  background: linear-gradient(135deg, #f8f6ff 60%, #fdf6fa 100%);
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -69,33 +79,47 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  background: #f6f4fd;
+  width: 6px;
+  height: 6px;
+  background: var(--soft-purple);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e0e7ff;
-  border-radius: 8px;
-  border: 2px solid #f6f4fd;
-  transition: background 0.2s;
+  background: linear-gradient(135deg, var(--primary-purple) 60%, var(--soft-purple) 100%);
+  border-radius: 6px;
+  min-height: 24px;
+  min-width: 24px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #bcb6f6;
+  background: linear-gradient(135deg, #7b6cff 60%, #a99cf7 100%);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #8d72e9 #f6f4fd;
+::-webkit-scrollbar-corner {
+  background: var(--soft-purple);
 }
 
 ::-webkit-scrollbar-button {
-  background: #3b277a;
-  border-radius: 8px;
-  height: 16px;
-  width: 16px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary-purple);
+  border-radius: 50%;
+  display: block;
 }
 
-::-webkit-scrollbar-button:hover {
-  background: #6c63ff;
+::-webkit-scrollbar-button:vertical:decrement {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="4,2 7,6 1,6" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:vertical:increment {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="1,2 7,2 4,6" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:decrement {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,4 6,1 6,7" fill="white"/></svg>') center/contain no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:increment {
+  background: var(--primary-purple);
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,1 2,7 6,4" fill="white"/></svg>') center/contain no-repeat;
 }
