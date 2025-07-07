@@ -1,18 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import styles from './Logo.module.css';
+import './Logo.css';
 
 const Logo = () => {
     return (
-        <Link href="/" className={styles.logoContainer}>
+        <Link href="/" className="logoContainer">
             <Image
-                src="/logo.svg"
+                src="/logoSmall.png"
                 alt="Logo"
                 width={40}
                 height={40}
-                className={styles.logoImage}
+                className="logoImage"
             />
-            <span className={styles.logoText}>MyApp</span>
+            <span className="logoText">MyApp</span>
         </Link>
     );
 };

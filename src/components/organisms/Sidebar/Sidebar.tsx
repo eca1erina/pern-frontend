@@ -11,7 +11,7 @@ const mainNavLinks = [
   { href: '/', label: 'Dashboard', iconName: 'LayoutDashboard' },
   { href: '/income', label: 'Income', iconName: 'Landmark' },
   { href: '/expenses', label: 'Your Expenses', iconName: 'ArrowRightLeft' },
-  { href: '/reports', label: 'Reports', iconName: 'PieChart' },
+  { href: '/reports', label: 'Reports', iconName: 'FileText' },
 ];
 
 const bottomNavLinks = [
