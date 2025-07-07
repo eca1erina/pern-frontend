@@ -1,16 +1,19 @@
 'use client';
-import { FC } from 'react';
-import UserAvatar from '@molecules/UserAvatar/UserAvatar';
-import Button from '@atoms/Button/Button';
-import '@organisms/UserCard/UserCard.css';
-import { UserCardProps } from './IUserCard';
+import React from 'react';
+import { User } from 'lucide-react';
+import './UserCard.css';
 
-const UserCard: FC<UserCardProps> = ({ user, onFollow }) => (
-  <div className="user-card">
-    <UserAvatar name={user.name} avatarUrl={user.avatarUrl} />
-    <p className="user-bio">{user.bio}</p>
-    <Button label="Follow" onClick={onFollow} />
-  </div>
-);
+interface UserCardProps {
+  name: string;
+}
+
+const UserCard: React.FC<UserCardProps> = ({ name }) => {
+  return (
+    <div className="profile-state">
+      <User size={20} style={{ marginRight: 18 }} />
+      <span className="profile-name">{name}</span>
+    </div>
+  );
+};
 
 export default UserCard;

@@ -4,7 +4,7 @@ import Image from 'next/image';
 const Logo: React.FC = () => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
     <Image
-      src="/logo.png"
+      src="/logoSmall.png"
       alt="Wise Track Logo"
       style={{ height: 38, width: 38, objectFit: 'contain' }}
       width={38}

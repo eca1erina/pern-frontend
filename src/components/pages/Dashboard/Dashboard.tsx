@@ -4,6 +4,7 @@ import './Dashboard.css';
 import React from 'react';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
+import UserCard from '@/components/organisms/UserCard/UserCard';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,7 +16,6 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import Sidebar from '@/components/organisms/Sidebar/Sidebar';
 
 ChartJS.register(
   CategoryScale,
@@ -114,14 +114,8 @@ const chartOptions = {
 
 const Dashboard = () => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
-      }}
-    >
-      <Sidebar />
+    <>
+      <UserCard name="Jasmine" />
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>
         <div className="overviewGrid">
@@ -170,7 +164,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
