@@ -12,6 +12,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   <div className="hero-section">
     <h1 className="hero-title">{title}</h1>
     <p className="hero-subtitle">{subtitle}</p>
-    <Button label={buttonLabel} onClick={onButtonClick} />
+    <Button variant="primary" onClick={onButtonClick}>
+      {buttonLabel}
+    </Button>
   </div>
 );

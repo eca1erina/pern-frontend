@@ -2,6 +2,7 @@
 
 import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import { icons } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Logo from '@/components/atoms/Logo/Logo';
 import './Sidebar.css';
 import Icon from '@/components/atoms/Icon/Icon';
@@ -16,6 +17,7 @@ const navLinks: { href: string; iconName: keyof typeof icons; label: string }[] 
 ];
 
 const Sidebar = () => {
+  const router = useRouter();
   const currentPath = usePathname();
   const navRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 });
@@ -36,6 +38,11 @@ const Sidebar = () => {
       setIndicatorStyle({ top: 0, height: 0, opacity: 0 });
     }
   }, [currentPath, activeIdx]);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('user');
+    router.push('/login');
+  };
 
   return (
     <aside className="sidebar">
@@ -65,20 +72,12 @@ const Sidebar = () => {
       </nav>
       <div className="footer">
         <div className="items">
-          <a href="/settings" className="settings-btn">
-            <span className="settings-icon">
-              <Icon name="Settings" size={20} />
-            </span>
-            <span>Settings</span>
-          </a>
-        </div>
-        <div className="items">
-          <a href="/logout" className="logout-btn">
+          <button onClick={handleLogout} className="logout-btn">
             <span className="logout-icon">
               <Icon name="LogOut" size={20} />
             </span>
             <span>Logout</span>
-          </a>
+          </button>
         </div>
       </div>
     </aside>

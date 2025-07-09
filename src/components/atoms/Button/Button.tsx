@@ -8,10 +8,11 @@ const Button: FC<ButtonProps> = ({
   onClick,
   variant = 'default',
   type = 'button',
+  size = 'medium',
   className = '',
   ...props
 }) => {
-  const buttonClasses = `btn btn-${variant} ${className}`;
+  const buttonClasses = `btn btn-${variant} ${size} ${className}`;
 
   return (
     <button type={type} className={buttonClasses} onClick={onClick} {...props}>

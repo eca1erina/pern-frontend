@@ -5,4 +5,5 @@ export interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
+  error?: string;
 }

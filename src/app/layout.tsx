@@ -1,8 +1,9 @@
+// Keep this as a Server Component (no 'use client' directive)
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Sidebar from '@/components/organisms/Sidebar/Sidebar';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import ClientLayout from './client-layout';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,10 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.className} ${geistSans.variable} ${geistMono.variable}`}>
-        <div className="app-container">
-          {/* Sidebar component for navigation */}
-          <main className="main-content">{children}</main>
-        </div>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

@@ -1,15 +1,29 @@
 'use client';
 
-import styles from './page.module.css';
+import { useState, useEffect } from 'react';
 import LandingPage from '@pages/LandingPage/LandingPage';
+import Dashboard from '@pages/Dashboard/Dashboard';
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <LandingPage />
-      </main>
-      <footer className={styles.footer}></footer>
-    </div>
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const userJson = sessionStorage.getItem('user');
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        setIsLoggedIn(!!user.isLoggedIn);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return isLoggedIn ? <Dashboard /> : <LandingPage />;
 }

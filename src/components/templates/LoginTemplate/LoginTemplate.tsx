@@ -1,12 +1,15 @@
 import React from 'react';
 import './LoginTemplate.css';
 import { LoginCard } from '@organisms/LoginCard/LoginCard';
+import { useRouter } from 'next/navigation';
 
 export const LoginTemplate: React.FC<{
   onLogin: (email: string, password: string) => void;
 }> = ({ onLogin }) => {
+  const router = useRouter();
+
   const handleSignupClick = () => {
-    // Handle signup navigation
+    router.push('/signup');
   };
 
   return (
