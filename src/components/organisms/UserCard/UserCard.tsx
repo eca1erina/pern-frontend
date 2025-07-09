@@ -8,8 +8,6 @@ import { UserCardProps } from './IUserCard';
 const UserCard: FC<UserCardProps> = ({ user, onFollow }) => (
   <div className="user-card">
     <UserAvatar name={user.name} avatarUrl={user.avatarUrl} />
-    <p className="user-bio">{user.bio}</p>
-    <Button label="Follow" onClick={onFollow} />
   </div>
 );
 
