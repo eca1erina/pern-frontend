@@ -1,6 +1,6 @@
 'use client';
 import React, { FC } from 'react';
-import '@atoms/InputField/InputField.css';
+import './InputField.css';
 import { InputFieldProps } from './IInputField';
 
 export const InputField: FC<InputFieldProps> = ({
@@ -10,6 +10,8 @@ export const InputField: FC<InputFieldProps> = ({
   label,
   value,
   onChange,
+  error,
+  ...props
 }) => (
   <div className="input-field">
     <label htmlFor={id} className="input-label">
@@ -21,7 +23,9 @@ export const InputField: FC<InputFieldProps> = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="input-element"
+      className={`input-element ${error ? 'input-error' : ''}`}
+      {...props}
     />
+    {error && <div className="input-error-message">{error}</div>}
   </div>
 );

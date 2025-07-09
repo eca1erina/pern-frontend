@@ -1,20 +1,29 @@
 import React from 'react';
 import { Header } from '@organisms/Header/Header';
-import { HeroSection } from '@molecules/HeroSection/HeroSection';
-import { useRouter } from 'next/navigation';
+import { HeroSection } from '@organisms/HeroSection/HeroSection';
 import './LandingTemplate.css';
+import { ILandingTemplateProps } from './ILandingTemplate';
 
-export const LandingTemplate: React.FC = () => {
-  const router = useRouter();
+export const LandingTemplate: React.FC<ILandingTemplateProps> = ({
+  onLoginClick,
+  onGetStartedClick,
+}) => {
   return (
     <div className="landing-template">
-      <Header />
+      <Header
+        logoIcon="📊"
+        logoText="Wise Track"
+        buttonLabel="Login"
+        buttonVariant="secondary"
+        onButtonClick={onLoginClick}
+        showButton={true}
+      />
       <main className="landing-content">
         <HeroSection
           title="Welcome to Wise Track"
           subtitle="The smartest way to manage your finances and track your expenses"
           buttonLabel="Get Started"
-          onButtonClick={() => router.push('/login')}
+          onButtonClick={onGetStartedClick}
         />
         <section className="features-section">
           <h2 className="features-title">Key Features</h2>

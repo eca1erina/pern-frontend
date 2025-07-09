@@ -1,0 +1,77 @@
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: var(--card-bg, #fff);
+  border-radius: 16px;
+  box-shadow: var(--shadow-purple, 0 8px 32px rgba(108, 71, 255, 0.10));
+  transition: all 0.3s ease;
+  animation: card-fade-in 0.5s ease-out;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(108, 71, 255, 0.14);
+}
+
+.metric-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--soft-purple, #e3dafe);
+  color: var(--primary-purple, #6c47ff);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  animation: icon-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s both;
+}
+
+.metric-card-title {
+  font-size: 0.9rem;
+  color: var(--text-light, #a09fc3);
+  margin-bottom: 0.5rem;
+}
+
+.metric-card-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-dark, #471d8b);
+}
+
+.metric-card-trend {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.metric-card-trend.positive {
+  color: var(--accent-green, #22c55e);
+}
+
+.metric-card-trend.negative {
+  color: var(--accent-red, #ef4444);
+}
+
+@keyframes card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes icon-pop {
+  from {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

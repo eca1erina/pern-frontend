@@ -1,0 +1,26 @@
+.chart-section {
+  background-color: var(--card-bg, #fff);
+  border-radius: 16px;
+  box-shadow: var(--shadow-purple, 0 8px 32px rgba(108, 71, 255, 0.10));
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark, #471d8b);
+  margin: 0;
+}
+
+.chart-container {
+  width: 100%;
+  position: relative;
+}
