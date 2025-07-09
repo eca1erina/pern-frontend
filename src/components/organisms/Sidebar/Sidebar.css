@@ -200,3 +200,9 @@
   box-shadow: 0 2px 8px rgba(123, 108, 255, 0.05);
 }
 
+.sidebar .profile-state {
+  border: 2px solid rgba(176, 165, 241, 0.35) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(8px);
+}
+

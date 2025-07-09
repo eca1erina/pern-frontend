@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
+import UserCard from '@/components/organisms/UserCard/UserCard';
 import '../Dashboard/Dashboard.css';
 import { Wallet } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
@@ -89,6 +90,7 @@ const Expenses = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
       <Sidebar />
+      <UserCard name="Jasmine" />
       <div className="mainContent">
         <h1 className="header">Your Expenses</h1>
         <div className="overviewGrid">
