@@ -6,7 +6,6 @@ import UserCard from '@/components/organisms/UserCard/UserCard';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Close sidebar on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setSidebarOpen(false);
@@ -24,7 +23,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       >
         <span />
       </button>
-      {/* Profile state button top right using UserCard organism */}
       <UserCard name="Jasmine" />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {sidebarOpen && (
