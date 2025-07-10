@@ -17,14 +17,17 @@ export default function LoginPage() {
 
       const { user, token } = res.data;
 
-      sessionStorage.setItem('user', JSON.stringify({
-        ...user,
-        token,
-        isLoggedIn: true,
-        loginTime: new Date().toString(),
-      }));
+      sessionStorage.setItem(
+        'user',
+        JSON.stringify({
+          ...user,
+          token,
+          isLoggedIn: true,
+          loginTime: new Date().toString(),
+        }),
+      );
 
-      router.push('/profile');
+      router.push('/dashboard');
     } catch (err: any) {
       console.error('Login failed:', err.response?.data || err.message);
       alert('Login failed: ' + (err.response?.data?.message || err.message));
