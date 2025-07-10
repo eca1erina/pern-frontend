@@ -1,0 +1,8 @@
+.login-template {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f8f6ff;
+  padding: 2rem;
+}

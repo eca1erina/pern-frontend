@@ -1,0 +1,57 @@
+.login-card {
+  max-width: 450px;
+  width: 100%;
+  margin: auto;
+  padding: 2.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  background-color: white;
+}
+
+.login-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+}
+
+.login-logo-icon {
+  margin-right: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.signup-link {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}

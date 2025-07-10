@@ -1,0 +1,28 @@
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-button {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light, #a09fc3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-button:hover, .filter-button:focus {
+  background-color: var(--soft-purple, #e3dafe);
+  color: var(--primary-purple, #6c47ff);
+}
+
+.filter-button.active {
+  background-color: var(--primary-purple, #6c47ff);
+  color: #fff;
+  font-weight: 600;
+}

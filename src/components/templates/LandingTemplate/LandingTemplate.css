@@ -1,0 +1,49 @@
+.landing-template {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-content {
+  flex: 1;
+}
+
+.features-section {
+  padding: 60px 20px;
+  background-color: #f7f8fc;
+}
+
+.features-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 40px;
+  color: #1f2937;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.feature-card h3 {
+  margin-bottom: 12px;
+  color: #4f46e5;
+}
+
+.landing-footer {
+  background-color: #1f2937;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
