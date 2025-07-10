@@ -4,12 +4,12 @@ import { FC, useEffect, useState } from 'react';
 import ProfileTemplate from '@templates/ProfileTemplate/ProfileTemplate';
 import { User } from '@organisms/UserCard/IUserCard';
 import axios from 'axios';
-import { useRouter } from 'next/navigation'; // ← import router
+import { useRouter } from 'next/navigation';
 
 const ProfilePage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const router = useRouter(); // ← initialize router
+  const router = useRouter();
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -48,7 +48,7 @@ const ProfilePage: FC = () => {
   };
 
   const goToDashboard = () => {
-    router.push('/dashboard'); // ← navigate to /dashboard
+    router.push('/dashboard');
   };
 
   if (loading) return <p>Loading profile...</p>;

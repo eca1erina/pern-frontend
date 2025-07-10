@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -30,15 +31,72 @@ ChartJS.register(
 const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('1m');
   const [isLoading, setIsLoading] = useState(false);
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+
+  const fetchTransactions = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`http://localhost:3001/users/${user.id}/transactions`);
+      const transactions = res.data;
+
+      // Sum income and expenses separately
+      const incomeSum = transactions
+        .filter((tx: any) => tx.type === 'income')
+        .reduce((sum: number, tx: any) => sum + Number(tx.amount || 0), 0);
+
+      const expenseSum = transactions
+        .filter((tx: any) => tx.type === 'expense')
+        .reduce((sum: number, tx: any) => sum + Number(tx.amount || 0), 0);
+
+      setTotalIncome(incomeSum);
+      setTotalExpenses(expenseSum);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    fetchTransactions();
   }, [activeFilter]);
 
+  const netBalance = totalIncome - totalExpenses;
+
+  const overviewCards = [
+    {
+      icon: <PiggyBank />,
+      title: 'Total Income',
+      value: `$${totalIncome.toFixed(2)}`,
+      trend: {
+        value: 12.5,
+        isPositive: true,
+      },
+    },
+    {
+      icon: <Wallet />,
+      title: 'Total Expenses',
+      value: `$${totalExpenses.toFixed(2)}`,
+      trend: {
+        value: 8.3,
+        isPositive: false,
+      },
+    },
+    {
+      icon: <Activity />,
+      title: 'Net Balance',
+      value: `$${netBalance.toFixed(2)}`,
+      trend: {
+        value: 23.1,
+        isPositive: netBalance >= 0,
+      },
+    },
+  ];
+
+  // For now keep these static, or you could also update charts based on fetched data.
   const lineData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
     datasets: [
@@ -123,39 +181,8 @@ const Dashboard = () => {
     },
   };
 
-  const overviewCards = [
-    {
-      icon: <PiggyBank />,
-      title: 'Total Income',
-      value: '$12,000',
-      trend: {
-        value: 12.5,
-        isPositive: true,
-      },
-    },
-    {
-      icon: <Wallet />,
-      title: 'Total Expenses',
-      value: '$10,000',
-      trend: {
-        value: 8.3,
-        isPositive: false,
-      },
-    },
-    {
-      icon: <Activity />,
-      title: 'Net Balance',
-      value: '$2,000',
-      trend: {
-        value: 23.1,
-        isPositive: true,
-      },
-    },
-  ];
-
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    // Here you would fetch new data based on the filter
   };
 
   return (

@@ -8,10 +8,9 @@ import axios from 'axios';
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleLogin = (email: string, _password: string) => {
-    sessionStorage.setItem(
-      'user',
-      JSON.stringify({
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      const res = await axios.post('http://localhost:3001/users/login', {
         email,
         password,
       });
@@ -23,9 +22,13 @@ export default function LoginPage() {
         token,
         isLoggedIn: true,
         loginTime: new Date().toString(),
-      }),
-    );
-    router.push('/dashboard');
+      }));
+
+      router.push('/profile');
+    } catch (err: any) {
+      console.error('Login failed:', err.response?.data || err.message);
+      alert('Login failed: ' + (err.response?.data?.message || err.message));
+    }
   };
 
   return <LoginTemplate onLogin={handleLogin} />;
