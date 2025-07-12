@@ -1,8 +1,12 @@
+'use client';
 import React from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { Wallet } from 'lucide-react';
+import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -87,17 +91,67 @@ const mockExpenses = [
 ];
 
 const Expenses = () => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [totalIncome, setTotalIncome] = useState<number>(0);
+    const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  
+    useEffect(() => {
+      const session = sessionStorage.getItem('user');
+      if (!session) {
+        console.error('No user session found.');
+        setLoading(false);
+        return;
+      }
+  
+      const { id } = JSON.parse(session);
+  
+      const fetchUserData = async () => {
+        try {
+          const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+          const { name, email } = userRes.data;
+  
+          setUser({ name, email, avatarUrl: '' });
+  
+          const incomeRes = await axios.get(
+            `http://localhost:3001/transactions/income?user_id=${id}`,
+          );
+          type Transaction = { amount: number | string };
+          const incomeSum = incomeRes.data.reduce(
+            (sum: number, tx: Transaction) => sum + Number(tx.amount),
+            0,
+          );
+          setTotalIncome(incomeSum);
+  
+          const expenseRes = await axios.get(
+            `http://localhost:3001/transactions/expense?user_id=${id}`,
+          );
+          const expenseSum = expenseRes.data.reduce(
+            (sum: number, tx: Transaction) => sum + Number(tx.amount),
+            0,
+          );
+          setTotalExpenses(expenseSum);
+        } catch (error) {
+          console.error('Error loading dashboard data:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchUserData();
+    }, []);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
+    <>
       <Sidebar />
-      <UserCard name="Jasmine" />
+      {user && <UserCard name={user.name} />}
       <div className="mainContent">
         <h1 className="header">Your Expenses</h1>
         <div className="overviewGrid">
           <div className="card">
             <span className="cardIcon"><Wallet /></span>
             <span className="cardTitle">Total Expenses</span>
-            <span className="cardValue">$10,000</span>
+            <span className="cardValue">${totalExpenses.toLocaleString()}</span>
           </div>
         </div>
         <div className="chartContainer">
@@ -139,7 +193,7 @@ const Expenses = () => {
           </table>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

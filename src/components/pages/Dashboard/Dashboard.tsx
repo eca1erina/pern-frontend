@@ -5,6 +5,7 @@ import React from 'react';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import Sidebar from '@/components/organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
 import axios from 'axios';
 import {
@@ -167,6 +168,7 @@ const Dashboard = () => {
 
   return (
     <>
+    <Sidebar />
       {user && <UserCard name={user.name} />}
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>

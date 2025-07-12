@@ -1,6 +1,11 @@
+'use client';
+
 import React from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import axios from 'axios';
+import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { PiggyBank } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
@@ -97,17 +102,60 @@ const mockIncomeEntries = [
 ];
 
 const Income = () => {
+      const [user, setUser] = useState<User | null>(null);
+      const [loading, setLoading] = useState<boolean>(true);
+      const [totalIncome, setTotalIncome] = useState<number>(0);
+      const [totalExpenses, setTotalExpenses] = useState<number>(0);
+    
+      useEffect(() => {
+        const session = sessionStorage.getItem('user');
+        if (!session) {
+          console.error('No user session found.');
+          setLoading(false);
+          return;
+        }
+    
+        const { id } = JSON.parse(session);
+    
+        const fetchUserData = async () => {
+          try {
+            const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+            const { name, email } = userRes.data;
+    
+            setUser({ name, email, avatarUrl: '' });
+    
+            const incomeRes = await axios.get(
+              `http://localhost:3001/transactions/income?user_id=${id}`,
+            );
+            type Transaction = { amount: number | string };
+            const incomeSum = incomeRes.data.reduce(
+              (sum: number, tx: Transaction) => sum + Number(tx.amount),
+              0,
+            );
+            setTotalIncome(incomeSum);
+    
+          } catch (error) {
+            console.error('Error loading dashboard data:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        fetchUserData();
+      }, []);
+  
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
       <Sidebar />
-      <UserCard name="Jasmine" />
+      {user && <UserCard name={user.name} />}
       <div className="mainContent">
         <h1 className="header">Income</h1>
         <div className="overviewGrid">
           <div className="card">
             <span className="cardIcon"><PiggyBank /></span>
             <span className="cardTitle">Total Income</span>
-            <span className="cardValue">$12,000</span>
+            <span className="cardValue">${totalIncome.toLocaleString()}</span>
           </div>
         </div>
         <div className="chartContainer">
