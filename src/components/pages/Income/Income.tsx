@@ -211,58 +211,6 @@ const Income = () => {
     },
   };
 
-const mockIncomeEntries = [
-  { date: '2024-07-01', source: 'Salary', amount: 2000 },
-  { date: '2024-06-15', source: 'Freelance', amount: 500 },
-  { date: '2024-06-10', source: 'Gift', amount: 200 },
-  { date: '2024-06-01', source: 'Salary', amount: 2000 },
-  { date: '2024-05-15', source: 'Bonus', amount: 300 },
-];
-
-const Income = () => {
-      const [user, setUser] = useState<User | null>(null);
-      const [loading, setLoading] = useState<boolean>(true);
-      const [totalIncome, setTotalIncome] = useState<number>(0);
-      const [totalExpenses, setTotalExpenses] = useState<number>(0);
-    
-      useEffect(() => {
-        const session = sessionStorage.getItem('user');
-        if (!session) {
-          console.error('No user session found.');
-          setLoading(false);
-          return;
-        }
-    
-        const { id } = JSON.parse(session);
-    
-        const fetchUserData = async () => {
-          try {
-            const userRes = await axios.get(`http://localhost:3001/users/${id}`);
-            const { name, email } = userRes.data;
-    
-            setUser({ name, email, avatarUrl: '' });
-    
-            const incomeRes = await axios.get(
-              `http://localhost:3001/transactions/income?user_id=${id}`,
-            );
-            type Transaction = { amount: number | string };
-            const incomeSum = incomeRes.data.reduce(
-              (sum: number, tx: Transaction) => sum + Number(tx.amount),
-              0,
-            );
-            setTotalIncome(incomeSum);
-    
-          } catch (error) {
-            console.error('Error loading dashboard data:', error);
-          } finally {
-            setLoading(false);
-          }
-        };
-    
-        fetchUserData();
-      }, []);
-  
-
   return (
     <>
       <Sidebar />

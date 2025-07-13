@@ -5,6 +5,7 @@ import '../Dashboard/Dashboard.css';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { User } from '@organisms/UserCard/IUserCard';
+import Copyright from '@/components/atoms/Copyright/Copyright';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import {
@@ -16,6 +17,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(
   CategoryScale,
@@ -104,6 +106,7 @@ const mockMonthlySummary = [
 const Reports = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const router = useRouter();
 
     useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -115,9 +118,11 @@ const Reports = () => {
 
     const { id } = JSON.parse(session);
 
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+        const userRes = await axios.get(`${apiUrl}/users/${id}`);
         const { name, email } = userRes.data;
         setUser({ name, email, avatarUrl: '' });
       } catch (error) {
@@ -133,7 +138,9 @@ const Reports = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
       <Sidebar />
-      {user && <UserCard name={user.name} />}
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name="User" />
+      </div>
       <div className="mainContent">
         <h1 className="header">Reports</h1>
         <div className="overviewGrid">
@@ -197,6 +204,7 @@ const Reports = () => {
             </tbody>
           </table>
         </div>
+        <Copyright />
       </div>
     </div>
   );

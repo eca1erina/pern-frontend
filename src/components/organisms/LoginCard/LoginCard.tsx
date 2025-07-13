@@ -5,14 +5,9 @@ import { LoginCardProps } from './ILoginCard';
 
 export const LoginCard: React.FC<
   LoginCardProps & { onLogin: (email: string, password: string) => void }
-> = ({ title = 'Welcome Back', showSignup = true, onSignupClick, onLogin }) => (
+> = ({ showSignup = true, onSignupClick, onLogin }) => (
   <div className="login-card">
-    <div className="login-header">
-      <div className="login-logo">
-        <span className="login-logo-icon">📊</span> Wise Track
-      </div>
-    </div>
-    <h1 className="login-title">{title}</h1>
+    <h1 className="login-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1.2rem', color: '#7b6cff', letterSpacing: '0.01em', textAlign: 'center' }}>Login</h1>
     <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#718096' }}>
       Enter your credentials to access your account
     </p>

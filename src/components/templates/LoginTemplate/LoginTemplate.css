@@ -6,3 +6,19 @@
   background-color: #f8f6ff;
   padding: 2rem;
 }
+
+.login-page-logo-topleft {
+  position: absolute;
+  top: 2.2rem;
+  left: 2.2rem;
+  width: 44px;
+  height: 44px;
+  z-index: 10;
+  filter: drop-shadow(0 2px 8px #a18aff44);
+  animation: logo-float-topleft 3.5s ease-in-out infinite alternate;
+}
+@keyframes logo-float-topleft {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.07); }
+  100% { transform: translateY(0) scale(1); }
+}

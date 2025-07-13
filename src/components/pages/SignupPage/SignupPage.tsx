@@ -9,7 +9,8 @@ export default function SignupPage() {
 
   const handleSignup = async (formData: { name: string; email: string; password: string }) => {
     try {
-      const res = await fetch('http://localhost:3001/users/signup', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/users/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
