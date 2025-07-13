@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import axios from 'axios';
+import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { PiggyBank, Plus } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import AddIncomeModal from '@organisms/Modal/AddIncomeModal';
-import { User } from '@organisms/UserCard/IUserCard';
 import Copyright from '@/components/atoms/Copyright/Copyright';
-import axios from 'axios';
 import {
   Chart as ChartJS,
   CategoryScale,

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { Wallet, Plus } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
-import { User } from '@organisms/UserCard/IUserCard';
 import axios from 'axios';
 import AddExpenseModal from '@organisms/Modal/AddExpenseModal';
 import Copyright from '@/components/atoms/Copyright/Copyright';
