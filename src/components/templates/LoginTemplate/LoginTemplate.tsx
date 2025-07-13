@@ -1,11 +1,16 @@
+'use client';
+
 import React from 'react';
 import './LoginTemplate.css';
 import { LoginCard } from '@organisms/LoginCard/LoginCard';
 import { useRouter } from 'next/navigation';
 
-export const LoginTemplate: React.FC<{
+type LoginTemplateProps = {
   onLogin: (email: string, password: string) => void;
-}> = ({ onLogin }) => {
+  errorMessage?: string;
+};
+
+export const LoginTemplate: React.FC<LoginTemplateProps> = ({ onLogin, errorMessage }) => {
   const router = useRouter();
 
   const handleSignupClick = () => {
@@ -14,8 +19,20 @@ export const LoginTemplate: React.FC<{
 
   return (
     <div className="login-template">
-      <img src="/logoSmall.png" alt="Wise Track Logo" className="login-page-logo-topleft" />
-      <LoginCard showSignup={true} onSignupClick={handleSignupClick} onLogin={onLogin} />
+      {/* Top-left logo */}
+      <img
+        src="/logoSmall.png"
+        alt="Wise Track Logo"
+        className="login-page-logo-topleft"
+      />
+
+      {/* Login form card */}
+      <LoginCard
+        showSignup={true}
+        onSignupClick={handleSignupClick}
+        onLogin={onLogin}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 };

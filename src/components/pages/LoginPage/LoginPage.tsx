@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginTemplate } from '@templates/LoginTemplate/LoginTemplate';
 import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -28,12 +29,13 @@ export default function LoginPage() {
         }),
       );
 
+      setErrorMessage(''); // Clear previous errors
       router.push('/dashboard');
     } catch (err: any) {
       console.error('Login failed:', err.response?.data || err.message);
-      alert('Login failed: ' + (err.response?.data?.message || err.message));
+      setErrorMessage(err.response?.data?.message || 'Incorrect email or password');
     }
   };
 
-  return <LoginTemplate onLogin={handleLogin} />;
+  return <LoginTemplate onLogin={handleLogin} errorMessage={errorMessage} />;
 }
