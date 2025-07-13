@@ -16,7 +16,7 @@
 
 ---
 
-# Wise Track Frontend
+# Wise Track 
 
 Wise Track is a modern personal finance management web application built with Next.js and React. It helps users track expenses, visualize spending, and achieve financial wellness.
 
@@ -58,11 +58,11 @@ pern-frontend/
 ## Getting Started
 1. Install dependencies:
    ```sh
-   npm install
+   > npm install
    ```
 2. Run the development server:
    ```sh
-   npm run dev
+   > npm run dev
    ```
 3. Open your browser:
    Visit [http://localhost:3000](http://localhost:3000)
@@ -76,11 +76,6 @@ We welcome contributions! To get started:
 3. Make your changes
 4. Commit and push (`git commit -m "Add your feature"`)
 5. Open a pull request
-
----
-
-## License
-This project is licensed under the MIT License.
 
 ---
 
