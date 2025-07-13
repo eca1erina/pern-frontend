@@ -1,97 +1,182 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import './AddIncomeModal.css';
 
 type Props = {
+  isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: {
-    category_id: string;
-    amount: number;
-    date: string;
-    description?: string;
-    is_recurring: boolean;
-  }) => void;
+  onAddExpense: (expense: { date: string; category: string; amount: number; description: string; is_recurring: boolean }) => void;
 };
 
-const AddExpenseModal: React.FC<Props> = ({ onClose, onSubmit }) => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => {
+  const [date, setDate] = useState<Date | null>(null);
+  const [category, setCategory] = useState('');
+  const [amount, setAmount] = useState<number | ''>('');
+  const [description, setDescription] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [show, setShow] = useState(isOpen);
+  const [animateOut, setAnimateOut] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShow(true);
+      setAnimateOut(false);
+    } else if (show) {
+      setAnimateOut(true);
+      const timeout = setTimeout(() => setShow(false), 350);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
+  if (!show) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
-    const data = {
-      category_id: formData.get('category') as string,
-      amount: parseFloat(formData.get('amount') as string),
-      date: formData.get('date') as string,
-      description: formData.get('description') as string,
-      is_recurring: formData.get('is_recurring') === 'on',
-    };
-
-    onSubmit(data);
-    form.reset();
+    if (!date || !category || amount === '') {
+      alert('Please fill out all fields');
+      return;
+    }
+    onAddExpense({
+      date: date.toISOString().split('T')[0],
+      category,
+      amount: Number(amount),
+      description,
+      is_recurring: isRecurring,
+    });
+    setDate(null);
+    setCategory('');
+    setAmount('');
+    setDescription('');
+    setIsRecurring(false);
+    onClose();
   };
 
-  // New handler for clicks on overlay
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      // Click was on the overlay, not inside the modal form
+  const handleClose = () => {
+    setAnimateOut(true);
+    setTimeout(() => {
+      setShow(false);
       onClose();
-    }
+    }, 350);
   };
 
   return (
-    <div
-      onClick={handleOverlayClick}  // <-- add this here
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 9999,
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          backgroundColor: '#fff',
-          padding: 24,
-          borderRadius: 12,
-          width: 400,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-        }}
+    <div className={`modal-overlay${animateOut ? ' modal-overlay-exit' : ' modal-overlay-enter'}`} onClick={handleClose}>
+      <div
+        className={`modal-card${animateOut ? ' modal-card-exit' : ' modal-card-enter'}`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ color: '#4f46e5', marginBottom: 8 }}>Add Expense</h2>
-        <input name="category" placeholder="Category ID" required style={{ padding: 8, backgroundColor: '#fff', color: '#000' }} />
-        <input name="amount" type="number" step="0.01" placeholder="Amount" required style={{ padding: 8, backgroundColor: '#fff', color: '#000' }} />
-        <input name="date" type="date" required style={{ padding: 8, backgroundColor: '#fff', color: '#000' }} />
-        <input name="description" placeholder="Description (optional)" style={{ padding: 8, backgroundColor: '#fff', color: '#000' }} />
-        <label style={{ fontSize: 14, color: '#000', backgroundColor: '#fff'}}>
-          <input name="is_recurring" type="checkbox" /> Recurring
-        </label>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button
-            type="submit"
-            style={{
-              backgroundColor: '#6c63ff',
-              color: '#fff',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: 8,
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              width: '100%',
-            }}
-          >
-            Add Expense
+        <button
+          className="modal-close-btn"
+          aria-label="Close modal"
+          type="button"
+          onClick={handleClose}
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6L16 16M16 6L6 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+        </button>
+        <h2 className="modal-title">Add Expense</h2>
+        <form onSubmit={handleSubmit} className="modal-form">
+          <label className="modal-label" style={{ position: 'relative' }}>
+            Date:
+            <div className="modal-datepicker-wrapper">
+              <DatePicker
+                selected={date}
+                onChange={(date) => setDate(date)}
+                dateFormat="MM/dd/yyyy"
+                placeholderText="mm/dd/yyyy"
+                className="modal-input modal-datepicker-input"
+                calendarClassName="modal-datepicker-calendar"
+                popperClassName="modal-datepicker-popper"
+                showPopperArrow={false}
+              />
+              <span className="modal-datepicker-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="5" width="14" height="12" rx="3" stroke="#a18aff" strokeWidth="1.5"/>
+                  <path d="M7 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M13 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round"/>
+                  <rect x="7" y="9" width="2" height="2" rx="1" fill="#a18aff"/>
+                </svg>
+              </span>
+            </div>
+          </label>
+          <label className="modal-label">
+            Category:
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Groceries, Rent"
+              className="modal-input"
+              required
+            />
+          </label>
+          <label className="modal-label">
+            Amount:
+            <div className="modal-number-input-wrapper">
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder="0"
+                min="0"
+                step="0.01"
+                className="modal-input modal-number-input"
+                required
+              />
+              <div className="modal-number-btns">
+                <button
+                  type="button"
+                  className="modal-number-btn modal-number-btn-up"
+                  tabIndex={-1}
+                  onClick={() => setAmount((prev) => prev === '' ? 1 : Number(prev) + 1)}
+                  aria-label="Increment"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 9l4-4 4 4" stroke="#a18aff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+                <button
+                  type="button"
+                  className="modal-number-btn modal-number-btn-down"
+                  tabIndex={-1}
+                  onClick={() => setAmount((prev) => prev === '' ? 0 : Math.max(0, Number(prev) - 1))}
+                  aria-label="Decrement"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 7l4 4 4-4" stroke="#a18aff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+          </label>
+          <label className="modal-label">
+            Description:
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description (optional)"
+              className="modal-input"
+            />
+          </label>
+          <label className="modal-checkbox-label">
+            <input
+              type="checkbox"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="modal-checkbox"
+            />
+            <span className="custom-checkbox" aria-hidden="true"></span>
+            Recurring
+          </label>
+          <button type="submit" className="modal-submit-btn">
+            <span className="modal-btn-text">Add Expense</span>
+            <span className="modal-btn-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 10.5L9 14.5L15 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

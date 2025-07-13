@@ -14,6 +14,7 @@ export const LoginTemplate: React.FC<{
 
   return (
     <div className="login-template">
+      <img src="/logoSmall.png" alt="Wise Track Logo" className="login-page-logo-topleft" />
       <LoginCard showSignup={true} onSignupClick={handleSignupClick} onLogin={onLogin} />
     </div>
   );

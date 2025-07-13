@@ -20,7 +20,6 @@
 
 html,
 body {
-  max-width: 100vw;
   overflow-x: hidden;
   background: #f6f4fd;
 }
@@ -121,4 +120,38 @@ a {
 ::-webkit-scrollbar-button:horizontal:increment {
   background: var(--primary-purple);
   mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,1 2,7 6,4" fill="white"/></svg>') center/contain no-repeat;
+}
+
+.profile-bg-container {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(120deg, #ece9fc 0%, #e7e9fb 60%, #e0e7ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* stretch children horizontally */
+  justify-content: flex-start; /* align to top */
+}
+
+.profile-header-row {
+  width: 100vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 64px 0 64px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.profile-center-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* align to top */
+  width: 100vw;
+  flex: 1 1 auto;
+  margin-top: 32px; /* space below header */
+  margin-bottom: 32px; /* optional: space at bottom */
+  min-height: 0;
+  z-index: 2;
 }

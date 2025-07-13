@@ -6,6 +6,7 @@ import { PiggyBank, Plus } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import AddIncomeModal from '@organisms/Modal/AddIncomeModal';
 import { User } from '@organisms/UserCard/IUserCard';
+import Copyright from '@/components/atoms/Copyright/Copyright';
 import axios from 'axios';
 import {
   Chart as ChartJS,
@@ -17,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(
   CategoryScale,
@@ -27,21 +29,17 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-// Type for income entries from backend (includes id)
 interface IncomeEntry {
   id: number;
   date: string;
   source: string;
   amount: number;
 }
-
-// Type for new income data (no id, coming from modal)
 interface NewIncomeData {
   date: string;
   source: string;
   amount: number;
-  is_recurring?: boolean; // optional if your modal uses this
+  is_recurring?: boolean; 
 }
 
 const Income = () => {
@@ -50,15 +48,17 @@ const Income = () => {
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Fetch income data from backend, must map id, date, source, amount
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const router = useRouter();
+
   const fetchIncomeData = async (userId: string) => {
     try {
       const incomeRes = await axios.get(
-        `http://localhost:3001/transactions/income?user_id=${userId}`
+        `${apiUrl}/transactions/income?user_id=${userId}`
       );
 
       const formattedIncome: IncomeEntry[] = incomeRes.data.map((tx: any) => ({
-        id: tx.id, // make sure your backend response contains id here
+        id: tx.id, 
         date: tx.date,
         source: tx.description || 'Income',
         amount: Number(tx.amount),
@@ -76,7 +76,7 @@ const Income = () => {
     if (!session) return;
 
     try {
-      await axios.delete(`http://localhost:3001/transactions/${transactionId}`);
+      await axios.delete(`${apiUrl}/transactions/${transactionId}`);
 
       setIncomeEntries((prev) => prev.filter((entry) => entry.id !== transactionId));
     } catch (error) {
@@ -96,7 +96,7 @@ const Income = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+        const userRes = await axios.get(`${apiUrl}/users/${id}`);
         const { name, email } = userRes.data;
         setUser({ name, email, avatarUrl: '' });
         await fetchIncomeData(id);
@@ -113,7 +113,6 @@ const Income = () => {
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
-  // Add new income accepts NewIncomeData (no id)
   const addIncome = async (income: NewIncomeData) => {
     const session = sessionStorage.getItem('user');
     if (!session) return;
@@ -124,15 +123,14 @@ const Income = () => {
       const payload = {
         user_id: userId,
         type: 'income',
-        category_id: 1, // Replace with appropriate category ID for income
+        category_id: 1, 
         description: income.source,
         amount: income.amount,
         date: new Date(income.date).toISOString().split('T')[0],
       };
 
-      await axios.post('http://localhost:3001/transactions', payload);
+      await axios.post(`${apiUrl}/transactions`, payload);
 
-      // Refetch income entries after adding
       await fetchIncomeData(userId);
       closeModal();
     } catch (error) {
@@ -142,7 +140,6 @@ const Income = () => {
 
   const totalIncome = incomeEntries.reduce((sum, i) => sum + i.amount, 0);
 
-  // Grouped chart data by month
   const groupedIncome: Record<string, number> = {};
   incomeEntries.forEach((entry) => {
     const month = new Date(entry.date).toLocaleString('default', { month: 'short' });
@@ -215,47 +212,28 @@ const Income = () => {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
-      }}
-    >
+    <>
       <Sidebar />
-      {user && <UserCard name={user.name} />}
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name="User" />
+      </div>
       <div className="mainContent">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <h1 className="header" style={{ margin: 0 }}>
-            Income
-          </h1>
-          <button
-            onClick={openModal}
-            aria-label="Add Income"
-            style={{
-              border: 'none',
-              backgroundColor: '#6c63ff',
-              color: '#fff',
-              borderRadius: 6,
-              width: 28,
-              height: 28,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Plus size={16} />
-          </button>
-        </div>
+        <h1 className="header">Income</h1>
 
         <div className="overviewGrid">
-          <div className="card">
+          <div className="card" style={{ position: 'relative' }}>
             <span className="cardIcon">
               <PiggyBank />
             </span>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">${totalIncome.toLocaleString()}</span>
+            <button
+              className="cardAddBtn"
+              onClick={openModal}
+              aria-label="Add Income"
+            >
+              <Plus size={18} color="#fff" />
+            </button>
           </div>
         </div>
 
@@ -325,10 +303,11 @@ const Income = () => {
             </tbody>
           </table>
         </div>
+        <Copyright />
       </div>
 
       <AddIncomeModal isOpen={modalOpen} onClose={closeModal} onAddIncome={addIncome} />
-    </div>
+    </>
   );
 };
 

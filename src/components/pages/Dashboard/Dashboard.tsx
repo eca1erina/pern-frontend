@@ -5,6 +5,7 @@ import React from 'react';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
+import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
 import axios from 'axios';
 import {
@@ -18,6 +19,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import Copyright from '@/components/atoms/Copyright/Copyright';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(
   CategoryScale,
@@ -119,6 +122,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [totalIncome, setTotalIncome] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const router = useRouter();
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -167,7 +171,10 @@ const Dashboard = () => {
 
   return (
     <>
-      {user && <UserCard name={user.name} />}
+      <Sidebar />
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name="User" />
+      </div>
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>
         <div className="overviewGrid">
@@ -193,6 +200,7 @@ const Dashboard = () => {
             <span className="cardValue">${(totalIncome - totalExpenses).toLocaleString()}</span>
           </div>
         </div>
+
         <div className="chartContainer">
           <div className="chartHeader">
             <h2>Total Income</h2>
@@ -215,6 +223,7 @@ const Dashboard = () => {
             <Bar data={barData} options={chartOptions} />
           </div>
         </div>
+        <Copyright />
       </div>
     </>
   );

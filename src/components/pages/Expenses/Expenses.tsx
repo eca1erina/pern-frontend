@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import '../Dashboard/Dashboard.css';
-import { Wallet } from 'lucide-react';
+import { Wallet, Plus } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { User } from '@organisms/UserCard/IUserCard';
 import axios from 'axios';
 import AddExpenseModal from '@organisms/Modal/AddExpenseModal';
+import Copyright from '@/components/atoms/Copyright/Copyright';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,6 +17,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -80,6 +82,7 @@ const Expenses = () => {
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -93,13 +96,14 @@ const Expenses = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const userRes = await axios.get(`${apiUrl}/users/${id}`);
         const { name, email } = userRes.data;
 
         setUser({ name, email, avatarUrl: '' });
 
         const expenseRes = await axios.get(
-          `http://localhost:3001/transactions/expenses?user_id=${id}`,
+          `${apiUrl}/transactions/expenses?user_id=${id}`,
         );
         const expenseSum = expenseRes.data.reduce(
           (sum: number, tx: { amount: number | string }) => sum + Number(tx.amount),
@@ -117,11 +121,11 @@ const Expenses = () => {
     fetchUserData();
   }, []);
 
-  const handleAddExpense = async (formData: {
-    category_id: string;
-    amount: number;
+  const handleAddExpense = async (expense: {
     date: string;
-    description?: string;
+    category: string;
+    amount: number;
+    description: string;
     is_recurring: boolean;
   }) => {
     const session = sessionStorage.getItem('user');
@@ -129,8 +133,13 @@ const Expenses = () => {
     if (!userId) return;
 
     try {
-      const res = await axios.post('http://localhost:3001/transactions', {
-        ...formData,
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await axios.post(`${apiUrl}/transactions`, {
+        category_id: expense.category, // map category to category_id for backend
+        amount: expense.amount,
+        date: expense.date,
+        description: expense.description,
+        is_recurring: expense.is_recurring,
         user_id: userId,
         type: 'expense',
       });
@@ -145,11 +154,11 @@ const Expenses = () => {
 
   const handleDeleteExpense = async (transactionId: number) => {
   try {
-    await axios.delete(`http://localhost:3001/transactions/${transactionId}`);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    await axios.delete(`${apiUrl}/transactions/${transactionId}`);
 
     setRecentExpenses((prev) => prev.filter((entry) => entry.id !== transactionId));
 
-    // Optionally update total expenses by subtracting deleted amount
     const deletedExpense = recentExpenses.find((e) => e.id === transactionId);
     if (deletedExpense) {
       setTotalExpenses((prev) => prev - Number(deletedExpense.amount));
@@ -161,51 +170,28 @@ const Expenses = () => {
 
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
-      }}
-    >
+    <>
       <Sidebar />
-      {user && <UserCard name={user.name} />}
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name="User" />
+      </div>
       <div className="mainContent">
-        <div
-          className="header"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 16,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h1 style={{ fontSize: 28, margin: 0 }}>Your Expenses</h1>
-            <button
-              onClick={() => setShowModal(true)}
-              style={{
-                fontSize: 20,
-                padding: '4px 12px',
-                borderRadius: 6,
-                background: '#4f46e5',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              +
-            </button>
-          </div>
-        </div>
+        <h1 className="header">Expenses</h1>
 
         <div className="overviewGrid">
-          <div className="card">
+          <div className="card" style={{ position: 'relative' }}>
             <span className="cardIcon">
               <Wallet />
             </span>
             <span className="cardTitle">Total Expenses</span>
             <span className="cardValue">${totalExpenses.toLocaleString()}</span>
+            <button
+              className="cardAddBtn"
+              onClick={() => setShowModal(true)}
+              aria-label="Add Expense"
+            >
+              <Plus size={18} color="#fff" />
+            </button>
           </div>
         </div>
 
@@ -224,72 +210,68 @@ const Expenses = () => {
         </div>
 
         <div className="tableContainer">
-  <div className="chartHeader">
-    <h2>Recent Expenses</h2>
-  </div>
-  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-    <thead>
-      <tr style={{ color: '#471d8b', fontWeight: 700, fontSize: 16 }}>
-        <th style={{ textAlign: 'left', padding: '10px 0' }}>Date</th>
-        <th style={{ textAlign: 'left', padding: '10px 0' }}>Category</th>
-        <th style={{ textAlign: 'right', padding: '10px 0' }}>Amount</th>
-        <th style={{ textAlign: 'center', padding: '10px 0', width: 50 }}>
-          {/* Optional header for delete button */}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {recentExpenses.map((entry, idx) => (
-        <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
-          <td style={{ padding: '10px 0' }}>{entry.date}</td>
-          <td style={{ padding: '10px 0' }}>{entry.category_id}</td>
-          <td
-            style={{
-              textAlign: 'right',
-              padding: '10px 0',
-              color: '#ef4444',
-              fontWeight: 600,
-            }}
-          >
-            -${entry.amount}
-          </td>
-          <td style={{ textAlign: 'center', padding: '10px 0' }}>
-            <button
-              onClick={() => handleDeleteExpense(entry.id)} 
-              aria-label={`Delete expense on ${entry.date}`}
-              style={{
-                backgroundColor: 'transparent',
-                borderColor: 'red',
-                color: 'red',
-                borderStyle: 'solid',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                lineHeight: 1,
-                padding: '2%',
-                borderRadius: 4,
-                width: 32,
-                height: 32,
-              }}
-              title="Delete expense"
-            >
-              &times;
-            </button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+          <div className="chartHeader">
+            <h2>Recent Expenses</h2>
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
+            <thead>
+              <tr style={{ color: '#471d8b', fontWeight: 700, fontSize: 16 }}>
+                <th style={{ textAlign: 'left', padding: '10px 0' }}>Date</th>
+                <th style={{ textAlign: 'left', padding: '10px 0' }}>Category</th>
+                <th style={{ textAlign: 'right', padding: '10px 0' }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentExpenses.map((entry, idx) => (
+                <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
+                  <td style={{ padding: '10px 0' }}>{entry.date}</td>
+                  <td style={{ padding: '10px 0' }}>{entry.category_id}</td>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#ef4444',
+                      fontWeight: 600,
+                    }}
+                  >
+                    -${entry.amount}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 0' }}>
+                    <button
+                      onClick={() => handleDeleteExpense(entry.id)}
+                      aria-label={`Delete expense on ${entry.date}`}
+                      style={{
+                        backgroundColor: 'transparent',
+                        borderColor: 'red',
+                        color: 'red',
+                        borderStyle: 'solid',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '1.2rem',
+                        lineHeight: 1,
+                        padding: '2%'
+                      }}
+                      title="Delete expense"
+                    >
+                      &times;
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {showModal && (
           <AddExpenseModal
+            isOpen={showModal}
             onClose={() => setShowModal(false)}
-            onSubmit={handleAddExpense}
+            onAddExpense={handleAddExpense}
           />
         )}
+        <Copyright />
       </div>
-    </div>
+    </>
   );
 };
 
