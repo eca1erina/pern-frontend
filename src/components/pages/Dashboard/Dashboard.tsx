@@ -149,7 +149,7 @@ const Dashboard = () => {
         setTotalIncome(incomeSum);
 
         const expenseRes = await axios.get(
-          `http://localhost:3001/transactions/expense?user_id=${id}`,
+          `http://localhost:3001/transactions/expenses?user_id=${id}`,
         );
         const expenseSum = expenseRes.data.reduce(
           (sum: number, tx: Transaction) => sum + Number(tx.amount),

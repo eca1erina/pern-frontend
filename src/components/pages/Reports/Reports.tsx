@@ -4,6 +4,9 @@ import UserCard from '@/components/organisms/UserCard/UserCard';
 import '../Dashboard/Dashboard.css';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
+import { User } from '@organisms/UserCard/IUserCard';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -99,10 +102,38 @@ const mockMonthlySummary = [
 ];
 
 const Reports = () => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      console.error('No user session found.');
+      setLoading(false);
+      return;
+    }
+
+    const { id } = JSON.parse(session);
+
+    const fetchUserData = async () => {
+      try {
+        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+        const { name, email } = userRes.data;
+        setUser({ name, email, avatarUrl: '' });
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
       <Sidebar />
-      <UserCard name="Jasmine" />
+      {user && <UserCard name={user.name} />}
       <div className="mainContent">
         <h1 className="header">Reports</h1>
         <div className="overviewGrid">

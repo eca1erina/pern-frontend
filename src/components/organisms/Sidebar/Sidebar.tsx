@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 const navLinks: { href: string; iconName: keyof typeof icons; label: string }[] = [
   { href: '/dashboard', iconName: 'LayoutDashboard', label: 'Dashboard' },
   { href: '/income', iconName: 'TrendingUp', label: 'Income' },
-  { href: '/expenses', iconName: 'CreditCard', label: 'Your Expenses' },
+  { href: '/expenses', iconName: 'CreditCard', label: 'Expenses' },
   { href: '/reports', iconName: 'FileText', label: 'Reports' },
 ];
 

@@ -1,14 +1,13 @@
-'use client';
-
-import React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import axios from 'axios';
 import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
-import { PiggyBank } from 'lucide-react';
+import { PiggyBank, Plus } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
+import AddIncomeModal from '@organisms/Modal/AddIncomeModal';
+import Copyright from '@/components/atoms/Copyright/Copyright';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(
   CategoryScale,
@@ -29,69 +29,187 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+interface IncomeEntry {
+  id: number;
+  date: string;
+  source: string;
+  amount: number;
+}
+interface NewIncomeData {
+  date: string;
+  source: string;
+  amount: number;
+  is_recurring?: boolean; 
+}
 
-const lineData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-  datasets: [
-    {
-      label: 'Income',
-      data: [1200, 1900, 1700, 2200, 2000, 2500, 2300],
-      borderColor: '#6c63ff',
-      backgroundColor: 'rgba(108,99,255,0.10)',
-      tension: 0.45,
-      fill: true,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#6c63ff',
-      pointBorderColor: '#fff',
-      borderWidth: 3,
-      pointBorderWidth: 2,
-      pointStyle: 'circle',
-    },
-  ],
-};
+const Income = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    title: { display: false },
-    tooltip: {
-      backgroundColor: '#fff',
-      titleColor: '#3b277a',
-      bodyColor: '#3b277a',
-      borderColor: '#ede9fe',
-      borderWidth: 1,
-      padding: 12,
-      cornerRadius: 8,
-      displayColors: false,
-    },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 14, weight: 'bold' as const },
-        padding: 8,
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const router = useRouter();
+
+  const fetchIncomeData = async (userId: string) => {
+    try {
+      const incomeRes = await axios.get(
+        `${apiUrl}/transactions/income?user_id=${userId}`
+      );
+
+      const formattedIncome: IncomeEntry[] = incomeRes.data.map((tx: any) => ({
+        id: tx.id, 
+        date: tx.date,
+        source: tx.description || 'Income',
+        amount: Number(tx.amount),
+      }));
+
+      formattedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setIncomeEntries(formattedIncome);
+    } catch (error) {
+      console.error('Error fetching income data:', error);
+    }
+  };
+
+  const handleDelete = async (transactionId: number) => {
+    const session = sessionStorage.getItem('user');
+    if (!session) return;
+
+    try {
+      await axios.delete(`${apiUrl}/transactions/${transactionId}`);
+
+      setIncomeEntries((prev) => prev.filter((entry) => entry.id !== transactionId));
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+    }
+  };
+
+  useEffect(() => {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      console.error('No user session found.');
+      setLoading(false);
+      return;
+    }
+
+    const { id } = JSON.parse(session);
+
+    const fetchUserData = async () => {
+      try {
+        const userRes = await axios.get(`${apiUrl}/users/${id}`);
+        const { name, email } = userRes.data;
+        setUser({ name, email, avatarUrl: '' });
+        await fetchIncomeData(id);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
+  const addIncome = async (income: NewIncomeData) => {
+    const session = sessionStorage.getItem('user');
+    if (!session) return;
+
+    const { id: userId } = JSON.parse(session);
+
+    try {
+      const payload = {
+        user_id: userId,
+        type: 'income',
+        category_id: 1, 
+        description: income.source,
+        amount: income.amount,
+        date: new Date(income.date).toISOString().split('T')[0],
+      };
+
+      await axios.post(`${apiUrl}/transactions`, payload);
+
+      await fetchIncomeData(userId);
+      closeModal();
+    } catch (error) {
+      console.error('Failed to add income:', error);
+    }
+  };
+
+  const totalIncome = incomeEntries.reduce((sum, i) => sum + i.amount, 0);
+
+  const groupedIncome: Record<string, number> = {};
+  incomeEntries.forEach((entry) => {
+    const month = new Date(entry.date).toLocaleString('default', { month: 'short' });
+    groupedIncome[month] = (groupedIncome[month] || 0) + entry.amount;
+  });
+
+  const months = Object.keys(groupedIncome);
+  const chartData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'Income',
+        data: months.map((month) => groupedIncome[month]),
+        borderColor: '#6c63ff',
+        backgroundColor: 'rgba(108,99,255,0.10)',
+        tension: 0.45,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#6c63ff',
+        pointBorderColor: '#fff',
+        borderWidth: 3,
+        pointBorderWidth: 2,
+        pointStyle: 'circle',
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        titleColor: '#3b277a',
+        bodyColor: '#3b277a',
+        borderColor: '#ede9fe',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
       },
     },
-    y: {
-      grid: { color: '#ede9fe', lineWidth: 1 },
-      border: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 13 },
-        padding: 8,
-        callback: function(tickValue: string | number) { 
-          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue/1000 + 'k';
-          return tickValue;
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 14, weight: 'bold' as const },
+          padding: 8,
+        },
+      },
+      y: {
+        grid: { color: '#ede9fe', lineWidth: 1 },
+        border: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 13 },
+          padding: 8,
+          callback: function (tickValue: string | number) {
+            if (typeof tickValue === 'number' && tickValue >= 1000)
+              return tickValue / 1000 + 'k';
+            return tickValue;
+          },
         },
       },
     },
-  },
-};
+  };
 
 const mockIncomeEntries = [
   { date: '2024-07-01', source: 'Salary', amount: 2000 },
@@ -146,18 +264,31 @@ const Income = () => {
   
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
+    <>
       <Sidebar />
-      {user && <UserCard name={user.name} />}
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name="User" />
+      </div>
       <div className="mainContent">
         <h1 className="header">Income</h1>
+
         <div className="overviewGrid">
-          <div className="card">
-            <span className="cardIcon"><PiggyBank /></span>
+          <div className="card" style={{ position: 'relative' }}>
+            <span className="cardIcon">
+              <PiggyBank />
+            </span>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">${totalIncome.toLocaleString()}</span>
+            <button
+              className="cardAddBtn"
+              onClick={openModal}
+              aria-label="Add Income"
+            >
+              <Plus size={18} color="#fff" />
+            </button>
           </div>
         </div>
+
         <div className="chartContainer">
           <div className="chartHeader">
             <h2>Income Trend</h2>
@@ -168,9 +299,10 @@ const Income = () => {
             </div>
           </div>
           <div style={{ width: '100%', height: 340 }}>
-            <Line data={lineData} options={chartOptions} />
+            <Line data={chartData} options={chartOptions} />
           </div>
         </div>
+
         <div className="tableContainer">
           <div className="chartHeader">
             <h2>Recent Income</h2>
@@ -184,21 +316,51 @@ const Income = () => {
               </tr>
             </thead>
             <tbody>
-              {mockIncomeEntries.map((entry, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
+              {incomeEntries.map((entry) => (
+                <tr key={entry.id} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.date}</td>
                   <td style={{ padding: '10px 0' }}>{entry.source}</td>
-                  <td style={{ textAlign: 'right', padding: '10px 0', color: '#22c55e', fontWeight: 600 }}>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#22c55e',
+                      fontWeight: 600,
+                    }}
+                  >
                     ${entry.amount}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 0' }}>
+                    <button
+                      onClick={() => handleDelete(entry.id)}
+                      aria-label={`Delete transaction on ${entry.date}`}
+                      style={{
+                        backgroundColor: 'transparent',
+                        borderColor: 'red',
+                        color: 'red',
+                        borderStyle: 'solid',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '1.2rem',
+                        lineHeight: 1,
+                        padding: '2%'
+                      }}
+                      title="Delete transaction"
+                    >
+                      &times;
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <Copyright />
       </div>
-    </div>
+
+      <AddIncomeModal isOpen={modalOpen} onClose={closeModal} onAddIncome={addIncome} />
+    </>
   );
 };
 
-export default Income; 
+export default Income;
