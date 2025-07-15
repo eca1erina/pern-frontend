@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginTemplate } from '@templates/LoginTemplate/LoginTemplate';
 import axios from 'axios';
+import { postData } from '@/utils/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,13 +12,12 @@ export default function LoginPage() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await axios.post(`${apiUrl}/users/login`, {
+      const res = await postData<{ user: any; token: string }>(`/users/login`, {
         email,
         password,
       });
 
-      const { user, token } = res.data;
+      const { user, token } = res;
 
       sessionStorage.setItem(
         'user',

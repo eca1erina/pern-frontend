@@ -7,7 +7,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
-import axios from 'axios';
+import { getData } from '@/utils/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -136,31 +136,22 @@ const Dashboard = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
-        const { name, email } = userRes.data;
+        const userRes = await getData<{ name: string; email: string }>(`/users/${id}`);
+        if (userRes) {
+          setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
+        }
 
-        setUser({ name, email, avatarUrl: '' });
-
-        const incomeRes = await axios.get(
-          `http://localhost:3001/transactions/income?user_id=${id}`,
+        const incomeRes = await getData<Array<{ amount: number | string }>>(
+          `/transactions/income?user_id=${id}`,
         );
-        type Transaction = { amount: number | string };
-        const incomeSum = incomeRes.data.reduce(
-          (sum: number, tx: Transaction) => sum + Number(tx.amount),
-          0,
-        );
+        const incomeSum = incomeRes?.reduce((sum, tx) => sum + Number(tx.amount), 0) ?? 0;
         setTotalIncome(incomeSum);
 
-        const expenseRes = await axios.get(
-          `http://localhost:3001/transactions/expenses?user_id=${id}`,
+        const expenseRes = await getData<Array<{ amount: number | string }>>(
+          `/transactions/expenses?user_id=${id}`,
         );
-        const expenseSum = expenseRes.data.reduce(
-          (sum: number, tx: Transaction) => sum + Number(tx.amount),
-          0,
-        );
+        const expenseSum = expenseRes?.reduce((sum, tx) => sum + Number(tx.amount), 0) ?? 0;
         setTotalExpenses(expenseSum);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
       } finally {
         setLoading(false);
       }

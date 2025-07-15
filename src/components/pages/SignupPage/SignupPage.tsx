@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { SignupTemplate } from '@templates/SignupTemplate/SignupTemplate';
+import { postData } from '@/utils/api';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -10,10 +11,10 @@ export default function SignupPage() {
   const handleSignup = async (formData: { name: string; email: string; password: string }) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await fetch(`${apiUrl}/users/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      const res = await postData('/users/signup', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
 
       const data = await res.json();

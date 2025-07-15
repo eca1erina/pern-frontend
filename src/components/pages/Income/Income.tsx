@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import axios from 'axios';
+import { getData, deleteData } from '@/utils/api';
 import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { PiggyBank, Plus } from 'lucide-react';
@@ -20,15 +21,7 @@ import {
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 interface IncomeEntry {
   id: number;
   date: string;
@@ -39,7 +32,7 @@ interface NewIncomeData {
   date: string;
   source: string;
   amount: number;
-  is_recurring?: boolean; 
+  is_recurring?: boolean;
 }
 
 const Income = () => {
@@ -53,12 +46,10 @@ const Income = () => {
 
   const fetchIncomeData = async (userId: string) => {
     try {
-      const incomeRes = await axios.get(
-        `${apiUrl}/transactions/income?user_id=${userId}`
-      );
+      const incomeRes = await getData(`/transactions/income?user_id=${userId}`);
 
-      const formattedIncome: IncomeEntry[] = incomeRes.data.map((tx: any) => ({
-        id: tx.id, 
+      const formattedIncome: IncomeEntry[] = incomeRes.map((tx: any) => ({
+        id: tx.id,
         date: tx.date,
         source: tx.description || 'Income',
         amount: Number(tx.amount),
@@ -76,7 +67,7 @@ const Income = () => {
     if (!session) return;
 
     try {
-      await axios.delete(`${apiUrl}/transactions/${transactionId}`);
+      await deleteData(`/transactions/${transactionId}`);
 
       setIncomeEntries((prev) => prev.filter((entry) => entry.id !== transactionId));
     } catch (error) {
@@ -96,8 +87,8 @@ const Income = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`${apiUrl}/users/${id}`);
-        const { name, email } = userRes.data;
+        const userRes = await getData(`/users/${id}`);
+        const { name, email } = userRes;
         setUser({ name, email, avatarUrl: '' });
         await fetchIncomeData(id);
       } catch (error) {
@@ -123,7 +114,7 @@ const Income = () => {
       const payload = {
         user_id: userId,
         type: 'income',
-        category_id: 1, 
+        category_id: 1,
         description: income.source,
         amount: income.amount,
         date: new Date(income.date).toISOString().split('T')[0],
@@ -202,8 +193,7 @@ const Income = () => {
           font: { size: 13 },
           padding: 8,
           callback: function (tickValue: string | number) {
-            if (typeof tickValue === 'number' && tickValue >= 1000)
-              return tickValue / 1000 + 'k';
+            if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
             return tickValue;
           },
         },
@@ -227,11 +217,7 @@ const Income = () => {
             </span>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">${totalIncome.toLocaleString()}</span>
-            <button
-              className="cardAddBtn"
-              onClick={openModal}
-              aria-label="Add Income"
-            >
+            <button className="cardAddBtn" onClick={openModal} aria-label="Add Income">
               <Plus size={18} color="#fff" />
             </button>
           </div>
@@ -291,7 +277,7 @@ const Income = () => {
                         fontWeight: 'bold',
                         fontSize: '1.2rem',
                         lineHeight: 1,
-                        padding: '2%'
+                        padding: '2%',
                       }}
                       title="Delete transaction"
                     >

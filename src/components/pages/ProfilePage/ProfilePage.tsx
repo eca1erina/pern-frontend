@@ -9,6 +9,7 @@ import { User as UserIcon, Lock, Info } from 'lucide-react';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import { useRouter } from 'next/navigation';
 import UserCard from '../../organisms/UserCard/UserCard';
+import { getData, putData } from '@/utils/api';
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,14 +44,21 @@ const ProfilePage = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`${apiUrl}/users/${id}`);
-        const { name, email, joinDate, lastLogin } = userRes.data;
+        const userRes = await getData<{
+          name: string;
+          email: string;
+          joinDate: string;
+          lastLogin: string;
+        }>(`/users/${id}`);
 
-        setUser({ name, email, avatarUrl: '' });
-        setUsernameInput(name || '');
-        setEmailInput(email || '');
-        setJoinDate(joinDate || 'January 2024');
-        setLastLogin(lastLogin || 'N/A');
+        if (userRes) {
+          const { name, email, joinDate, lastLogin } = userRes;
+          setUser({ name, email, avatarUrl: '' });
+          setUsernameInput(name || '');
+          setEmailInput(email || '');
+          setJoinDate(joinDate || 'January 2024');
+          setLastLogin(lastLogin || 'N/A');
+        }
       } catch (error) {
         console.error(error);
         setFeedback('Failed to fetch user data.');
@@ -65,10 +73,15 @@ const ProfilePage = () => {
   const handleSaveUsername = async () => {
     if (!userId) return;
     try {
-      await axios.put(`${apiUrl}/users/${userId}`, { name: usernameInput });
-      setUser((u) => (u ? { ...u, name: usernameInput } : u));
-      setEditUsername(false);
-      setFeedback('Username updated successfully.');
+      const updatedUser = await putData<{ name: string }>(`/users/${userId}`, {
+        name: usernameInput,
+      });
+
+      if (updatedUser) {
+        setUser((u) => (u ? { ...u, name: updatedUser.name } : u));
+        setEditUsername(false);
+        setFeedback('Username updated successfully.');
+      }
     } catch (err: any) {
       setFeedback(err.response?.data?.message || 'Failed to update username.');
     }
@@ -77,10 +90,15 @@ const ProfilePage = () => {
   const handleSaveEmail = async () => {
     if (!userId) return;
     try {
-      await axios.put(`${apiUrl}/users/${userId}`, { email: emailInput });
-      setUser((u) => (u ? { ...u, email: emailInput } : u));
-      setEditEmail(false);
-      setFeedback('Email updated successfully.');
+      const updatedUser = await putData<{ email: string }>(`/users/${userId}`, {
+        email: emailInput,
+      });
+
+      if (updatedUser) {
+        setUser((u) => (u ? { ...u, email: updatedUser.email } : u));
+        setEditEmail(false);
+        setFeedback('Email updated successfully.');
+      }
     } catch (err: any) {
       setFeedback(err.response?.data?.message || 'Failed to update email.');
     }
@@ -95,11 +113,14 @@ const ProfilePage = () => {
     }
 
     try {
-      await axios.put(`${apiUrl}/users/${userId}`, { password: newPassword });
-      setNewPassword('');
-      setConfirmPassword('');
-      setEditPassword(false);
-      setFeedback('Password updated successfully.');
+      const updatedPasswordResponse = await putData(`/users/${userId}`, { password: newPassword });
+
+      if (updatedPasswordResponse) {
+        setNewPassword('');
+        setConfirmPassword('');
+        setEditPassword(false);
+        setFeedback('Password updated successfully.');
+      }
     } catch (err: any) {
       setFeedback(err.response?.data?.message || 'Failed to update password.');
     }
@@ -108,9 +129,24 @@ const ProfilePage = () => {
   return (
     <>
       <Sidebar />
-      <div className="mainContent" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', overflowY: 'auto' }}>
-        <h1 className="header" style={{ alignSelf: 'flex-start' }}>Profile</h1>
-        <div style={{ cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => router.push('/profile')}>
+      <div
+        className="mainContent"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          minHeight: '100vh',
+          overflowY: 'auto',
+        }}
+      >
+        <h1 className="header" style={{ alignSelf: 'flex-start' }}>
+          Profile
+        </h1>
+        <div
+          style={{ cursor: 'pointer', marginBottom: '1.5rem' }}
+          onClick={() => router.push('/profile')}
+        >
           <UserCard name={user?.name || 'User'} />
         </div>
 
@@ -120,7 +156,9 @@ const ProfilePage = () => {
           {/* Personal Info */}
           <div className={`${styles.profileSectionCard} ${styles.animatedCard}`}>
             <div className={styles.profileSectionHeader}>
-              <span className={styles.profileSectionIcon}><UserIcon /></span>
+              <span className={styles.profileSectionIcon}>
+                <UserIcon />
+              </span>
               <h2 className={styles.profileSectionTitle}>Personal Information</h2>
             </div>
 
@@ -128,11 +166,30 @@ const ProfilePage = () => {
             <div className={styles.profileFieldGroup}>
               <label className={styles.profileLabel}>Username</label>
               <div className={styles.profileInputRow}>
-                <input className={styles.profileInput} value={usernameInput} placeholder="Username" onChange={e => { setUsernameInput(e.target.value); setEditUsername(true); }} />
+                <input
+                  className={styles.profileInput}
+                  value={usernameInput}
+                  placeholder="Username"
+                  onChange={(e) => {
+                    setUsernameInput(e.target.value);
+                    setEditUsername(true);
+                  }}
+                />
                 {editUsername && (
                   <>
-                    <button className="btn" onClick={handleSaveUsername}>Save</button>
-                    <button className="btn" style={{ background: '#ede9fe', color: '#6c63ff' }} onClick={() => { setEditUsername(false); setUsernameInput(user?.name || ''); }}>Cancel</button>
+                    <button className="btn" onClick={handleSaveUsername}>
+                      Save
+                    </button>
+                    <button
+                      className="btn"
+                      style={{ background: '#ede9fe', color: '#6c63ff' }}
+                      onClick={() => {
+                        setEditUsername(false);
+                        setUsernameInput(user?.name || '');
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </>
                 )}
               </div>
@@ -142,11 +199,30 @@ const ProfilePage = () => {
             <div className={styles.profileFieldGroup}>
               <label className={styles.profileLabel}>Email</label>
               <div className={styles.profileInputRow}>
-                <input className={styles.profileInput} value={emailInput} placeholder="Email" onChange={e => { setEmailInput(e.target.value); setEditEmail(true); }} />
+                <input
+                  className={styles.profileInput}
+                  value={emailInput}
+                  placeholder="Email"
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setEditEmail(true);
+                  }}
+                />
                 {editEmail && (
                   <>
-                    <button className="btn" onClick={handleSaveEmail}>Save</button>
-                    <button className="btn" style={{ background: '#ede9fe', color: '#6c63ff' }} onClick={() => { setEditEmail(false); setEmailInput(user?.email || ''); }}>Cancel</button>
+                    <button className="btn" onClick={handleSaveEmail}>
+                      Save
+                    </button>
+                    <button
+                      className="btn"
+                      style={{ background: '#ede9fe', color: '#6c63ff' }}
+                      onClick={() => {
+                        setEditEmail(false);
+                        setEmailInput(user?.email || '');
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </>
                 )}
               </div>
@@ -156,18 +232,53 @@ const ProfilePage = () => {
           {/* Security */}
           <div className={`${styles.profileSectionCard} ${styles.animatedCard}`}>
             <div className={styles.profileSectionHeader}>
-              <span className={styles.profileSectionIcon}><Lock /></span>
+              <span className={styles.profileSectionIcon}>
+                <Lock />
+              </span>
               <h2 className={styles.profileSectionTitle}>Security</h2>
             </div>
             <div className={styles.profileFieldGroup}>
               <label className={styles.profileLabel}>Password</label>
-              <div className={styles.profileInputRow} style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}>
-                <input className={styles.profileInput} type="password" placeholder="New Password" value={newPassword} onChange={e => { setNewPassword(e.target.value); setEditPassword(true); }} />
-                <input className={styles.profileInput} type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setEditPassword(true); }} />
+              <div
+                className={styles.profileInputRow}
+                style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}
+              >
+                <input
+                  className={styles.profileInput}
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setEditPassword(true);
+                  }}
+                />
+                <input
+                  className={styles.profileInput}
+                  type="password"
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setEditPassword(true);
+                  }}
+                />
                 {editPassword && (
                   <div style={{ display: 'flex', gap: '1.2rem', marginTop: '0.7rem' }}>
-                    <button className="btn" onClick={handleSavePassword}>Save</button>
-                    <button className="btn" style={{ background: '#ede9fe', color: '#6c63ff' }} onClick={() => { setEditPassword(false); setNewPassword(''); setConfirmPassword(''); }}>Cancel</button>
+                    <button className="btn" onClick={handleSavePassword}>
+                      Save
+                    </button>
+                    <button
+                      className="btn"
+                      style={{ background: '#ede9fe', color: '#6c63ff' }}
+                      onClick={() => {
+                        setEditPassword(false);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 )}
               </div>
@@ -177,7 +288,9 @@ const ProfilePage = () => {
           {/* Account Details */}
           <div className={`${styles.profileSectionCard} ${styles.animatedCard}`}>
             <div className={styles.profileSectionHeader}>
-              <span className={styles.profileSectionIcon}><Info /></span>
+              <span className={styles.profileSectionIcon}>
+                <Info />
+              </span>
               <h2 className={styles.profileSectionTitle}>Account Details</h2>
             </div>
             <div className={styles.accountDetailRow}>

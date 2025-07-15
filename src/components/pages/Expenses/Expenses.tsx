@@ -6,6 +6,7 @@ import '../Dashboard/Dashboard.css';
 import { Wallet, Plus } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
+import { getData, postData, deleteData } from '@/utils/api';
 import AddExpenseModal from '@organisms/Modal/AddExpenseModal';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import {
@@ -96,15 +97,12 @@ const Expenses = () => {
 
     const fetchUserData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const userRes = await axios.get(`${apiUrl}/users/${id}`);
-        const { name, email } = userRes.data;
+        const userRes = await getData(`/users/${id}`);
+        const { name, email } = userRes;
 
         setUser({ name, email, avatarUrl: '' });
 
-        const expenseRes = await axios.get(
-          `${apiUrl}/transactions/expenses?user_id=${id}`,
-        );
+        const expenseRes = await getData(`/transactions/expenses?user_id=${id}`);
         const expenseSum = expenseRes.data.reduce(
           (sum: number, tx: { amount: number | string }) => sum + Number(tx.amount),
           0,
@@ -134,7 +132,7 @@ const Expenses = () => {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await axios.post(`${apiUrl}/transactions`, {
+      const res = await postData(`/transactions`, {
         category_id: expense.category, // map category to category_id for backend
         amount: expense.amount,
         date: expense.date,
@@ -153,21 +151,19 @@ const Expenses = () => {
   };
 
   const handleDeleteExpense = async (transactionId: number) => {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    await axios.delete(`${apiUrl}/transactions/${transactionId}`);
+    try {
+      await deleteData(`/transactions/${transactionId}`);
 
-    setRecentExpenses((prev) => prev.filter((entry) => entry.id !== transactionId));
+      setRecentExpenses((prev) => prev.filter((entry) => entry.id !== transactionId));
 
-    const deletedExpense = recentExpenses.find((e) => e.id === transactionId);
-    if (deletedExpense) {
-      setTotalExpenses((prev) => prev - Number(deletedExpense.amount));
+      const deletedExpense = recentExpenses.find((e) => e.id === transactionId);
+      if (deletedExpense) {
+        setTotalExpenses((prev) => prev - Number(deletedExpense.amount));
+      }
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
     }
-  } catch (error) {
-    console.error('Failed to delete expense:', error);
-  }
-};
-
+  };
 
   return (
     <>
@@ -249,7 +245,7 @@ const Expenses = () => {
                         fontWeight: 'bold',
                         fontSize: '1.2rem',
                         lineHeight: 1,
-                        padding: '2%'
+                        padding: '2%',
                       }}
                       title="Delete expense"
                     >

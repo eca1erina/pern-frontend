@@ -19,14 +19,7 @@ import {
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const barData = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
@@ -87,8 +80,8 @@ const chartOptions = {
         color: '#a3a3a3',
         font: { size: 13 },
         padding: 8,
-        callback: function(tickValue: string | number) { 
-          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue/1000 + 'k';
+        callback: function (tickValue: string | number) {
+          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
           return tickValue;
         },
       },
@@ -104,11 +97,11 @@ const mockMonthlySummary = [
 ];
 
 const Reports = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
-    useEffect(() => {
+  useEffect(() => {
     const session = sessionStorage.getItem('user');
     if (!session) {
       console.error('No user session found.');
@@ -136,7 +129,13 @@ const Reports = () => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)' }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
+      }}
+    >
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name="User" />
@@ -145,17 +144,23 @@ const Reports = () => {
         <h1 className="header">Reports</h1>
         <div className="overviewGrid">
           <div className="card">
-            <span className="cardIcon"><PiggyBank /></span>
+            <span className="cardIcon">
+              <PiggyBank />
+            </span>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">$12,000</span>
           </div>
           <div className="card">
-            <span className="cardIcon"><Wallet /></span>
+            <span className="cardIcon">
+              <Wallet />
+            </span>
             <span className="cardTitle">Total Expenses</span>
             <span className="cardValue">$10,000</span>
           </div>
           <div className="card">
-            <span className="cardIcon"><Activity /></span>
+            <span className="cardIcon">
+              <Activity />
+            </span>
             <span className="cardTitle">Net Balance</span>
             <span className="cardValue">$2,000</span>
           </div>
@@ -190,13 +195,34 @@ const Reports = () => {
               {mockMonthlySummary.map((entry, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.month}</td>
-                  <td style={{ textAlign: 'right', padding: '10px 0', color: '#22c55e', fontWeight: 600 }}>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#22c55e',
+                      fontWeight: 600,
+                    }}
+                  >
                     ${entry.income}
                   </td>
-                  <td style={{ textAlign: 'right', padding: '10px 0', color: '#ef4444', fontWeight: 600 }}>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#ef4444',
+                      fontWeight: 600,
+                    }}
+                  >
                     -${entry.expenses}
                   </td>
-                  <td style={{ textAlign: 'right', padding: '10px 0', color: '#471d8b', fontWeight: 700 }}>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#471d8b',
+                      fontWeight: 700,
+                    }}
+                  >
                     ${entry.net}
                   </td>
                 </tr>
@@ -210,4 +236,4 @@ const Reports = () => {
   );
 };
 
-export default Reports; 
+export default Reports;
