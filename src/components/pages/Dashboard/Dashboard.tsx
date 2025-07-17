@@ -33,95 +33,20 @@ ChartJS.register(
   Legend,
 );
 
-const lineData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-  datasets: [
-    {
-      label: 'Income',
-      data: [1200, 1900, 1700, 2200, 2000, 2500, 2300],
-      borderColor: '#6c63ff',
-      backgroundColor: 'rgba(108,99,255,0.10)',
-      tension: 0.45,
-      fill: true,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#6c63ff',
-      pointBorderColor: '#fff',
-      borderWidth: 3,
-      pointBorderWidth: 2,
-      pointStyle: 'circle',
-    },
-  ],
-};
-
-const barData = {
-  labels: ['Groceries', 'Rent', 'Utilities', 'Transport', 'Other'],
-  datasets: [
-    {
-      label: 'Expenses',
-      data: [400, 1200, 300, 150, 200],
-      backgroundColor: '#a5b4fc',
-      borderRadius: 8,
-      maxBarThickness: 32,
-    },
-  ],
-};
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  layout: {
-    padding: {
-      left: 0,
-      right: 0,
-      top: 10,
-      bottom: 10,
-    },
-  },
-  plugins: {
-    legend: { display: false },
-    title: { display: false },
-    tooltip: {
-      backgroundColor: '#fff',
-      titleColor: '#3b277a',
-      bodyColor: '#3b277a',
-      borderColor: '#ede9fe',
-      borderWidth: 1,
-      padding: 12,
-      cornerRadius: 8,
-      displayColors: false,
-    },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 14, weight: 'bold' as const },
-        padding: 8,
-      },
-    },
-    y: {
-      grid: { color: '#ede9fe', lineWidth: 1 },
-      border: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 13 },
-        padding: 8,
-        callback: function (tickValue: string | number) {
-          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
-          return tickValue;
-        },
-      },
-    },
-  },
-};
+interface TransactionEntry {
+  id: number;
+  date: string;
+  amount: number;
+  description?: string;
+  type: 'income' | 'expense';
+  category?: string; // assuming you have category for expenses
+}
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [totalIncome, setTotalIncome] = useState<number>(0);
-  const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
+  const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -141,17 +66,12 @@ const Dashboard = () => {
           setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
         }
 
-        const incomeRes = await getData<Array<{ amount: number | string }>>(
-          `/transactions/income?user_id=${id}`,
-        );
-        const incomeSum = incomeRes?.reduce((sum, tx) => sum + Number(tx.amount), 0) ?? 0;
-        setTotalIncome(incomeSum);
-
-        const expenseRes = await getData<Array<{ amount: number | string }>>(
-          `/transactions/expenses?user_id=${id}`,
-        );
-        const expenseSum = expenseRes?.reduce((sum, tx) => sum + Number(tx.amount), 0) ?? 0;
-        setTotalExpenses(expenseSum);
+        // Fetch all transactions (income + expenses)
+        const transactionsRes = await getData<TransactionEntry[]>(`/transactions?user_id=${id}`);
+        if (transactionsRes) {
+          setIncomeData(transactionsRes.filter(tx => tx.type === 'income'));
+          setExpenseData(transactionsRes.filter(tx => tx.type === 'expense'));
+        }
       } finally {
         setLoading(false);
       }
@@ -160,11 +80,134 @@ const Dashboard = () => {
     fetchUserData();
   }, []);
 
+  // Calculate totals
+  const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+  const totalExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+  // Group income by month (for line chart)
+  const groupByMonth = (data: TransactionEntry[]) => {
+    return data.reduce<Record<string, number>>((acc, tx) => {
+      const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
+      acc[month] = (acc[month] || 0) + Number(tx.amount);
+      return acc;
+    }, {});
+  };
+
+  const incomeByMonth = groupByMonth(incomeData);
+  const months = Object.keys(incomeByMonth).length
+    ? Object.keys(incomeByMonth)
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+
+  // Line chart data for Income by month
+  const lineData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'Income',
+        data: months.map(m => incomeByMonth[m] || 0),
+        borderColor: '#6c63ff',
+        backgroundColor: 'rgba(108,99,255,0.10)',
+        tension: 0.45,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#6c63ff',
+        pointBorderColor: '#fff',
+        borderWidth: 3,
+        pointBorderWidth: 2,
+        pointStyle: 'circle',
+      },
+    ],
+  };
+
+  // Group expenses by category (for bar chart)
+  // Group expenses by description (used as category)
+const groupByCategory = (data: TransactionEntry[]) => {
+  return data.reduce<Record<string, number>>((acc, tx) => {
+    const category = tx.description || 'Other'; // use description as category
+    acc[category] = (acc[category] || 0) + Number(tx.amount);
+    return acc;
+  }, {});
+};
+
+const expensesByCategory = groupByCategory(expenseData);
+const categories = Object.keys(expensesByCategory).length
+  ? Object.keys(expensesByCategory)
+  : ['Groceries', 'Rent', 'Utilities', 'Transport', 'Other'];
+
+const barData = {
+  labels: categories,
+  datasets: [
+    {
+      label: 'Expenses',
+      data: categories.map(c => expensesByCategory[c] || 0),
+      backgroundColor: '#a5b4fc',
+      borderRadius: 8,
+      maxBarThickness: 32,
+    },
+  ],
+};
+
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+        top: 10,
+        bottom: 10,
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        titleColor: '#3b277a',
+        bodyColor: '#3b277a',
+        borderColor: '#ede9fe',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 14, weight: 'bold' as const },
+          padding: 8,
+        },
+      },
+      y: {
+        grid: { color: '#ede9fe', lineWidth: 1 },
+        border: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 13 },
+          padding: 8,
+          callback: function (tickValue: string | number) {
+            if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
+            return tickValue;
+          },
+        },
+      },
+    },
+  };
+
+  if (loading) {
+    return <div style={{ padding: 20 }}>Loading...</div>;
+  }
+
   return (
     <>
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
-        <UserCard name="User" />
+        <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>
@@ -206,6 +249,7 @@ const Dashboard = () => {
             <Line data={lineData} options={chartOptions} />
           </div>
         </div>
+
         <div className="tableContainer">
           <div className="chartHeader">
             <h2>Recent Expenses</h2>
@@ -214,6 +258,7 @@ const Dashboard = () => {
             <Bar data={barData} options={chartOptions} />
           </div>
         </div>
+
         <Copyright />
       </div>
     </>

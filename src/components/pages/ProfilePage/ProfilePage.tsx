@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
-import axios from 'axios';
 import '../Dashboard/Dashboard.css';
 import styles from './ProfilePage.module.css';
 import { User as UserIcon, Lock, Info } from 'lucide-react';

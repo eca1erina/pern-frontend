@@ -5,9 +5,9 @@ import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import { Wallet, Plus } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
-import axios from 'axios';
 import { getData, postData, deleteData } from '@/utils/api';
 import AddExpenseModal from '@organisms/Modal/AddExpenseModal';
+import ConfirmDeleteModal from '@organisms/Modal/ConfirmDeleteModal';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import {
   Chart as ChartJS,
@@ -83,6 +83,9 @@ const Expenses = () => {
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -99,16 +102,16 @@ const Expenses = () => {
       try {
         const userRes = await getData(`/users/${id}`);
         const { name, email } = userRes;
-
         setUser({ name, email, avatarUrl: '' });
 
-        const expenseRes = await getData(`/transactions/expenses?user_id=${id}`);
-        const expenseSum = expenseRes.data.reduce(
-          (sum: number, tx: { amount: number | string }) => sum + Number(tx.amount),
-          0,
-        );
+        const expenseData = await getData(`/transactions/expenses?user_id=${id}`);
+
+        const expenseSum = Array.isArray(expenseData)
+          ? expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0)
+          : 0;
+
         setTotalExpenses(expenseSum);
-        setRecentExpenses(expenseRes.data);
+        setRecentExpenses(Array.isArray(expenseData) ? expenseData : []);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
@@ -131,9 +134,8 @@ const Expenses = () => {
     if (!userId) return;
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await postData(`/transactions`, {
-        category_id: expense.category, // map category to category_id for backend
+      const newExpense = await postData(`/transactions`, {
+        category_id: expense.category,
         amount: expense.amount,
         date: expense.date,
         description: expense.description,
@@ -142,26 +144,37 @@ const Expenses = () => {
         type: 'expense',
       });
 
-      setRecentExpenses((prev) => [res.data, ...prev]);
-      setTotalExpenses((prev) => prev + Number(res.data.amount));
+      if (!newExpense || newExpense.amount === undefined) {
+        console.error('Invalid response from API when adding expense:', newExpense);
+        return;
+      }
+
+      setRecentExpenses((prev) => [newExpense, ...prev]);
+      setTotalExpenses((prev) => prev + Number(newExpense.amount));
       setShowModal(false);
     } catch (err) {
       console.error('Failed to add expense:', err);
     }
   };
 
-  const handleDeleteExpense = async (transactionId: number) => {
+  const handleDeleteExpense = async () => {
+    if (!selectedExpenseId) return;
+
     try {
-      await deleteData(`/transactions/${transactionId}`);
+      const deletedExpense = recentExpenses.find((e) => e.id === selectedExpenseId);
 
-      setRecentExpenses((prev) => prev.filter((entry) => entry.id !== transactionId));
-
-      const deletedExpense = recentExpenses.find((e) => e.id === transactionId);
       if (deletedExpense) {
         setTotalExpenses((prev) => prev - Number(deletedExpense.amount));
       }
+
+      setRecentExpenses((prev) => prev.filter((entry) => entry.id !== selectedExpenseId));
+
+      await deleteData(`/transactions/${selectedExpenseId}`);
     } catch (error) {
       console.error('Failed to delete expense:', error);
+    } finally {
+      setConfirmDeleteOpen(false);
+      setSelectedExpenseId(null);
     }
   };
 
@@ -169,7 +182,7 @@ const Expenses = () => {
     <>
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
-        <UserCard name="User" />
+        <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
         <h1 className="header">Expenses</h1>
@@ -218,8 +231,8 @@ const Expenses = () => {
               </tr>
             </thead>
             <tbody>
-              {recentExpenses.map((entry, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
+              {recentExpenses.map((entry) => (
+                <tr key={entry.id} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.date}</td>
                   <td style={{ padding: '10px 0' }}>{entry.category_id}</td>
                   <td
@@ -234,7 +247,10 @@ const Expenses = () => {
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button
-                      onClick={() => handleDeleteExpense(entry.id)}
+                      onClick={() => {
+                        setSelectedExpenseId(entry.id);
+                        setConfirmDeleteOpen(true);
+                      }}
                       aria-label={`Delete expense on ${entry.date}`}
                       style={{
                         backgroundColor: 'transparent',
@@ -265,6 +281,15 @@ const Expenses = () => {
             onAddExpense={handleAddExpense}
           />
         )}
+
+        {confirmDeleteOpen && (
+          <ConfirmDeleteModal
+            isOpen={confirmDeleteOpen}
+            onClose={() => setConfirmDeleteOpen(false)}
+            onConfirm={handleDeleteExpense}
+          />
+        )}
+
         <Copyright />
       </div>
     </>

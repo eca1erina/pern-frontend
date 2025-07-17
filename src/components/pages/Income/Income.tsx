@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
@@ -8,6 +9,7 @@ import '../Dashboard/Dashboard.css';
 import { PiggyBank, Plus } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import AddIncomeModal from '@organisms/Modal/AddIncomeModal';
+import ConfirmDeleteModal from '@organisms/Modal/ConfirmDeleteModal';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import {
   Chart as ChartJS,
@@ -22,6 +24,7 @@ import {
 import { useRouter } from 'next/navigation';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
 interface IncomeEntry {
   id: number;
   date: string;
@@ -40,6 +43,8 @@ const Income = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<IncomeEntry | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
@@ -62,16 +67,22 @@ const Income = () => {
     }
   };
 
-  const handleDelete = async (transactionId: number) => {
-    const session = sessionStorage.getItem('user');
-    if (!session) return;
+  const handleDeleteClick = (entry: IncomeEntry) => {
+    setDeleteTarget(entry);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await deleteData(`/transactions/${transactionId}`);
-
-      setIncomeEntries((prev) => prev.filter((entry) => entry.id !== transactionId));
+      await deleteData(`/transactions/${deleteTarget.id}`);
+      setIncomeEntries((prev) => prev.filter((e) => e.id !== deleteTarget.id));
     } catch (error) {
       console.error('Failed to delete transaction:', error);
+    } finally {
+      setDeleteModalOpen(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -205,7 +216,7 @@ const Income = () => {
     <>
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
-        <UserCard name="User" />
+        <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
         <h1 className="header">Income</h1>
@@ -266,7 +277,7 @@ const Income = () => {
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button
-                      onClick={() => handleDelete(entry.id)}
+                      onClick={() => handleDeleteClick(entry)}
                       aria-label={`Delete transaction on ${entry.date}`}
                       style={{
                         backgroundColor: 'transparent',
@@ -293,6 +304,13 @@ const Income = () => {
       </div>
 
       <AddIncomeModal isOpen={modalOpen} onClose={closeModal} onAddIncome={addIncome} />
+
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        itemDescription={`"${deleteTarget?.source}" on ${deleteTarget?.date}`}
+      />
     </>
   );
 };
