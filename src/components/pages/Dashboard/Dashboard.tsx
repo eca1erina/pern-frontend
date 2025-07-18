@@ -136,13 +136,14 @@ const Dashboard = () => {
 
     const fetchUserData = async () => {
       try {
-        const userRes = await axios.get(`http://localhost:3001/users/${id}`);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const userRes = await axios.get(`${apiUrl}/users/${id}`);
         const { name, email } = userRes.data;
 
         setUser({ name, email, avatarUrl: '' });
 
         const incomeRes = await axios.get(
-          `http://localhost:3001/transactions/income?user_id=${id}`,
+          `${apiUrl}/transactions/income?user_id=${id}`,
         );
         type Transaction = { amount: number | string };
         const incomeSum = incomeRes.data.reduce(
@@ -152,7 +153,7 @@ const Dashboard = () => {
         setTotalIncome(incomeSum);
 
         const expenseRes = await axios.get(
-          `http://localhost:3001/transactions/expenses?user_id=${id}`,
+          `${apiUrl}/transactions/expenses?user_id=${id}`,
         );
         const expenseSum = expenseRes.data.reduce(
           (sum: number, tx: Transaction) => sum + Number(tx.amount),

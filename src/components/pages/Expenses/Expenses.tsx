@@ -135,7 +135,7 @@ const Expenses = () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const res = await axios.post(`${apiUrl}/transactions`, {
-        category_id: expense.category, // map category to category_id for backend
+        category_id: expense.category,
         amount: expense.amount,
         date: expense.date,
         description: expense.description,

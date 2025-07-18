@@ -4,6 +4,7 @@ import Spline from '@splinetool/react-spline';
 import { useRouter } from 'next/navigation';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import './LandingTemplate.css';
+import { ILandingTemplateProps } from './ILandingTemplate';
 
 const infoCards = [
   {
@@ -36,7 +37,7 @@ const cardVariants = {
   }),
 };
 
-export const LandingTemplate: React.FC = () => {
+export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onLoginClick, onGetStartedClick }) => {
   const router = useRouter();
 
   const handleAboutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
