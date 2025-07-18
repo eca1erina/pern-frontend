@@ -39,7 +39,7 @@ interface TransactionEntry {
   amount: number;
   description?: string;
   type: 'income' | 'expense';
-  category?: string; // assuming you have category for expenses
+  category?: string;
 }
 
 const Dashboard = () => {
@@ -84,7 +84,7 @@ const Dashboard = () => {
   const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
   const totalExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  // Group income by month (for line chart)
+  // Group income by month
   const groupByMonth = (data: TransactionEntry[]) => {
     return data.reduce<Record<string, number>>((acc, tx) => {
       const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
@@ -94,59 +94,64 @@ const Dashboard = () => {
   };
 
   const incomeByMonth = groupByMonth(incomeData);
-  const months = Object.keys(incomeByMonth).length
-    ? Object.keys(incomeByMonth)
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 
-  // Line chart data for Income by month
-  const lineData = {
-    labels: months,
-    datasets: [
-      {
-        label: 'Income',
-        data: months.map(m => incomeByMonth[m] || 0),
-        borderColor: '#6c63ff',
-        backgroundColor: 'rgba(108,99,255,0.10)',
-        tension: 0.45,
-        fill: true,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        pointBackgroundColor: '#6c63ff',
-        pointBorderColor: '#fff',
-        borderWidth: 3,
-        pointBorderWidth: 2,
-        pointStyle: 'circle',
-      },
-    ],
-  };
+const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const months = monthOrder.filter((month) => month in incomeByMonth);
 
-  // Group expenses by category (for bar chart)
-  // Group expenses by description (used as category)
+const lineData = {
+  labels: months,
+  datasets: [
+    {
+      label: 'Income',
+      data: months.map(m => incomeByMonth[m] || 0),
+      borderColor: '#6c63ff',
+      backgroundColor: 'rgba(108,99,255,0.10)',
+      tension: 0.45,
+      fill: true,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#6c63ff',
+      pointBorderColor: '#fff',
+      borderWidth: 3,
+      pointBorderWidth: 2,
+      pointStyle: 'circle',
+    },
+  ],
+};
+
 const groupByCategory = (data: TransactionEntry[]) => {
   return data.reduce<Record<string, number>>((acc, tx) => {
-    const category = tx.description || 'Other'; // use description as category
+    const rawCategory = tx.category?.trim();
+    const rawDescription = tx.description?.trim();
+
+    const category = rawCategory && rawCategory.length > 0
+      ? rawCategory
+      : rawDescription && rawDescription.length > 0
+      ? rawDescription
+      : 'Other';
+
     acc[category] = (acc[category] || 0) + Number(tx.amount);
     return acc;
   }, {});
 };
 
+
 const expensesByCategory = groupByCategory(expenseData);
-const categories = Object.keys(expensesByCategory).length
-  ? Object.keys(expensesByCategory)
-  : ['Groceries', 'Rent', 'Utilities', 'Transport', 'Other'];
+const sortedCategories = Object.keys(expensesByCategory).sort((a, b) => a.localeCompare(b));
 
 const barData = {
-  labels: categories,
+  labels: sortedCategories,
   datasets: [
     {
       label: 'Expenses',
-      data: categories.map(c => expensesByCategory[c] || 0),
+      data: sortedCategories.map(c => expensesByCategory[c] || 0),
       backgroundColor: '#a5b4fc',
       borderRadius: 8,
       maxBarThickness: 32,
     },
   ],
 };
+
 
 
   const chartOptions = {

@@ -300,10 +300,7 @@ const ProfilePage = () => {
               <span className={styles.accountDetailLabel}>Member Since</span>
               <span className={styles.accountDetailDate}>{joinDate}</span>
             </div>
-            <div className={styles.accountDetailRow}>
-              <span className={styles.accountDetailLabel}>Last Login</span>
-              <span className={styles.accountDetailDate}>{lastLogin}</span>
-            </div>
+            
           </div>
         </div>
         <Copyright />

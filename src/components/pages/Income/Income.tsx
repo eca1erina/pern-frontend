@@ -23,6 +23,9 @@ import {
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface IncomeEntry {
@@ -45,6 +48,11 @@ const Income = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IncomeEntry | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
+  const availableYears = Array.from(
+    new Set(incomeEntries.map((entry) => new Date(entry.date).getFullYear()))
+  ).sort((a, b) => b - a);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
@@ -142,13 +150,19 @@ const Income = () => {
 
   const totalIncome = incomeEntries.reduce((sum, i) => sum + i.amount, 0);
 
+  const filteredEntries = incomeEntries.filter(
+    (entry) => new Date(entry.date).getFullYear() === selectedYear
+  );
+
   const groupedIncome: Record<string, number> = {};
-  incomeEntries.forEach((entry) => {
+  filteredEntries.forEach((entry) => {
     const month = new Date(entry.date).toLocaleString('default', { month: 'short' });
     groupedIncome[month] = (groupedIncome[month] || 0) + entry.amount;
   });
 
-  const months = Object.keys(groupedIncome);
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = monthOrder.filter((month) => month in groupedIncome);
+
   const chartData = {
     labels: months,
     datasets: [
@@ -212,6 +226,64 @@ const Income = () => {
     },
   };
 
+  // Export CSV function
+  const exportToCSV = () => {
+    if (incomeEntries.length === 0) return;
+
+    const header = ['Date', 'Source', 'Amount'];
+    const rows = incomeEntries.map(({ id, date, source, amount }) => [
+      date,
+      `"${source.replace(/"/g, '""')}"`, // escape quotes
+      amount.toFixed(2),
+    ]);
+
+    const csvContent =
+      [header, ...rows]
+        .map(e => e.join(','))
+        .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `income_transactions_${selectedYear || 'all'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportToPDF = () => {
+  if (incomeEntries.length === 0) {
+    alert('No income data to export.');
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  doc.text('Income Transactions', 14, 20);
+
+  const headers = [['Date', 'Source', 'Amount']];
+  const data = incomeEntries.map(({ id, date, source, amount }) => [
+    date,
+    source,
+    `$${amount.toFixed(2)}`,
+  ]);
+
+  autoTable(doc, {
+    startY: 30,
+    head: headers,
+    body: data,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [108, 99, 255] },
+  });
+
+  doc.save('income-transactions.pdf');
+};
+
+
+
   return (
     <>
       <Sidebar />
@@ -221,7 +293,8 @@ const Income = () => {
       <div className="mainContent">
         <h1 className="header">Income</h1>
 
-        <div className="overviewGrid">
+        <div className="overviewGrid" style={{ gap: 20 }}>
+          {/* Total Income Card */}
           <div className="card" style={{ position: 'relative' }}>
             <span className="cardIcon">
               <PiggyBank />
@@ -232,15 +305,58 @@ const Income = () => {
               <Plus size={18} color="#fff" />
             </button>
           </div>
+
+          {/* Export Income Card */}
+          <div
+            className="card"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minWidth: 200,
+            }}
+          >
+            <span className="cardIcon">
+              <PiggyBank />
+            </span>
+            <span className="cardTitle">Export Income</span>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className=""
+                onClick={exportToCSV}
+                aria-label="Export Income Transactions to CSV"
+                style={{ backgroundColor: '#4f46e5', padding: '6px 12px', fontSize: '0.9rem' }}
+              >
+                Export CSV
+              </button>
+              <button
+                className=""
+                onClick={exportToPDF}
+                aria-label="Export Income Transactions to PDF"
+                style={{ backgroundColor: '#10b981', padding: '6px 12px', fontSize: '0.9rem' }}
+              >
+                Export PDF
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="chartContainer">
           <div className="chartHeader">
             <h2>Income Trend</h2>
             <div className="filterGroup chartFilters">
-              <button className="chartFilter active">1m</button>
-              <button className="chartFilter">6m</button>
-              <button className="chartFilter">1y</button>
+              {availableYears.map((year) => (
+                <button
+                  key={year}
+                  className={`chartFilter ${year === selectedYear ? 'active' : ''}`}
+                  onClick={() => setSelectedYear(year)}
+                >
+                  {year}
+                </button>
+              ))}
             </div>
           </div>
           <div style={{ width: '100%', height: 340 }}>
@@ -258,6 +374,7 @@ const Income = () => {
                 <th style={{ textAlign: 'left', padding: '10px 0' }}>Date</th>
                 <th style={{ textAlign: 'left', padding: '10px 0' }}>Source</th>
                 <th style={{ textAlign: 'right', padding: '10px 0' }}>Amount</th>
+                <th style={{ padding: '10px 0', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
