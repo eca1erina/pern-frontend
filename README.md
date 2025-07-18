@@ -58,11 +58,11 @@ pern-frontend/
 ## Getting Started
 1. Install dependencies:
    ```sh
-   npm install
+   > npm install
    ```
 2. Run the development server:
    ```sh
-   npm run dev
+   > npm run dev
    ```
 3. Open your browser:
    Visit [http://localhost:3000](http://localhost:3000)
@@ -79,11 +79,6 @@ We welcome contributions! To get started:
 
 ---
 
-## License
-This project is licensed under the MIT License.
-
----
-
 ## Acknowledgements
 - [IBM](https://www.ibm.com/) for collaboration and support
 - [Spline](https://spline.design/) for 3D backgrounds
@@ -93,3 +88,5 @@ This project is licensed under the MIT License.
 ---
 
 **Wise Track** – Modern finance, beautifully tracked.
+
+
