@@ -16,7 +16,7 @@
 
 ---
 
-# Wise Track Frontend
+# Wise Track 
 
 Wise Track is a modern personal finance management web application built with Next.js and React. It helps users track expenses, visualize spending, and achieve financial wellness.
 

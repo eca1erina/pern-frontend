@@ -7,7 +7,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
-import axios from 'axios';
+import { getData } from '@/utils/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,12 +33,77 @@ ChartJS.register(
   Legend,
 );
 
+interface TransactionEntry {
+  id: number;
+  date: string;
+  amount: number;
+  description?: string;
+  type: 'income' | 'expense';
+  category?: string;
+}
+
+const Dashboard = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
+  const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      console.error('No user session found.');
+      setLoading(false);
+      return;
+    }
+
+    const { id } = JSON.parse(session);
+
+    const fetchUserData = async () => {
+      try {
+        const userRes = await getData<{ name: string; email: string }>(`/users/${id}`);
+        if (userRes) {
+          setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
+        }
+
+        // Fetch all transactions (income + expenses)
+        const transactionsRes = await getData<TransactionEntry[]>(`/transactions?user_id=${id}`);
+        if (transactionsRes) {
+          setIncomeData(transactionsRes.filter(tx => tx.type === 'income'));
+          setExpenseData(transactionsRes.filter(tx => tx.type === 'expense'));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Calculate totals
+  const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+  const totalExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+  // Group income by month
+  const groupByMonth = (data: TransactionEntry[]) => {
+    return data.reduce<Record<string, number>>((acc, tx) => {
+      const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
+      acc[month] = (acc[month] || 0) + Number(tx.amount);
+      return acc;
+    }, {});
+  };
+
+  const incomeByMonth = groupByMonth(incomeData);
+
+const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const months = monthOrder.filter((month) => month in incomeByMonth);
+
 const lineData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+  labels: months,
   datasets: [
     {
       label: 'Income',
-      data: [1200, 1900, 1700, 2200, 2000, 2500, 2300],
+      data: months.map(m => incomeByMonth[m] || 0),
       borderColor: '#6c63ff',
       backgroundColor: 'rgba(108,99,255,0.10)',
       tension: 0.45,
@@ -54,12 +119,32 @@ const lineData = {
   ],
 };
 
+const groupByCategory = (data: TransactionEntry[]) => {
+  return data.reduce<Record<string, number>>((acc, tx) => {
+    const rawCategory = tx.category?.trim();
+    const rawDescription = tx.description?.trim();
+
+    const category = rawCategory && rawCategory.length > 0
+      ? rawCategory
+      : rawDescription && rawDescription.length > 0
+      ? rawDescription
+      : 'Other';
+
+    acc[category] = (acc[category] || 0) + Number(tx.amount);
+    return acc;
+  }, {});
+};
+
+
+const expensesByCategory = groupByCategory(expenseData);
+const sortedCategories = Object.keys(expensesByCategory).sort((a, b) => a.localeCompare(b));
+
 const barData = {
-  labels: ['Groceries', 'Rent', 'Utilities', 'Transport', 'Other'],
+  labels: sortedCategories,
   datasets: [
     {
       label: 'Expenses',
-      data: [400, 1200, 300, 150, 200],
+      data: sortedCategories.map(c => expensesByCategory[c] || 0),
       backgroundColor: '#a5b4fc',
       borderRadius: 8,
       maxBarThickness: 32,
@@ -67,114 +152,67 @@ const barData = {
   ],
 };
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  layout: {
-    padding: {
-      left: 0,
-      right: 0,
-      top: 10,
-      bottom: 10,
-    },
-  },
-  plugins: {
-    legend: { display: false },
-    title: { display: false },
-    tooltip: {
-      backgroundColor: '#fff',
-      titleColor: '#3b277a',
-      bodyColor: '#3b277a',
-      borderColor: '#ede9fe',
-      borderWidth: 1,
-      padding: 12,
-      cornerRadius: 8,
-      displayColors: false,
-    },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 14, weight: 'bold' as const },
-        padding: 8,
+
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+        top: 10,
+        bottom: 10,
       },
     },
-    y: {
-      grid: { color: '#ede9fe', lineWidth: 1 },
-      border: { display: false },
-      ticks: {
-        color: '#a3a3a3',
-        font: { size: 13 },
-        padding: 8,
-        callback: function (tickValue: string | number) {
-          if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
-          return tickValue;
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        titleColor: '#3b277a',
+        bodyColor: '#3b277a',
+        borderColor: '#ede9fe',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 14, weight: 'bold' as const },
+          padding: 8,
+        },
+      },
+      y: {
+        grid: { color: '#ede9fe', lineWidth: 1 },
+        border: { display: false },
+        ticks: {
+          color: '#a3a3a3',
+          font: { size: 13 },
+          padding: 8,
+          callback: function (tickValue: string | number) {
+            if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
+            return tickValue;
+          },
         },
       },
     },
-  },
-};
+  };
 
-const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [totalIncome, setTotalIncome] = useState<number>(0);
-  const [totalExpenses, setTotalExpenses] = useState<number>(0);
-  const router = useRouter();
-
-  useEffect(() => {
-    const session = sessionStorage.getItem('user');
-    if (!session) {
-      console.error('No user session found.');
-      setLoading(false);
-      return;
-    }
-
-    const { id } = JSON.parse(session);
-
-    const fetchUserData = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const userRes = await axios.get(`${apiUrl}/users/${id}`);
-        const { name, email } = userRes.data;
-
-        setUser({ name, email, avatarUrl: '' });
-
-        const incomeRes = await axios.get(
-          `${apiUrl}/transactions/income?user_id=${id}`,
-        );
-        type Transaction = { amount: number | string };
-        const incomeSum = incomeRes.data.reduce(
-          (sum: number, tx: Transaction) => sum + Number(tx.amount),
-          0,
-        );
-        setTotalIncome(incomeSum);
-
-        const expenseRes = await axios.get(
-          `${apiUrl}/transactions/expenses?user_id=${id}`,
-        );
-        const expenseSum = expenseRes.data.reduce(
-          (sum: number, tx: Transaction) => sum + Number(tx.amount),
-          0,
-        );
-        setTotalExpenses(expenseSum);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  if (loading) {
+    return <div style={{ padding: 20 }}>Loading...</div>;
+  }
 
   return (
     <>
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
-        <UserCard name="User" />
+        <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>
@@ -216,6 +254,7 @@ const Dashboard = () => {
             <Line data={lineData} options={chartOptions} />
           </div>
         </div>
+
         <div className="tableContainer">
           <div className="chartHeader">
             <h2>Recent Expenses</h2>
@@ -224,6 +263,7 @@ const Dashboard = () => {
             <Bar data={barData} options={chartOptions} />
           </div>
         </div>
+
         <Copyright />
       </div>
     </>

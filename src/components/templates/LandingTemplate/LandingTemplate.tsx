@@ -57,7 +57,7 @@ export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onLoginClick,
         </div>
         <nav className="landing-nav">
           <a href="#about" className="landing-nav-link" onClick={handleAboutClick}>About Us</a>
-          <button className="get-started-btn" onClick={() => router.push('/dashboard')}>Get Started</button>
+          <button className="get-started-btn" onClick={() => router.push('/signup')}>Get Started</button>
         </nav>
       </header>
 
