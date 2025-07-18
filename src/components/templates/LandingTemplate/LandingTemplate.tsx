@@ -37,7 +37,7 @@ const cardVariants = {
   }),
 };
 
-export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onLoginClick, onGetStartedClick }) => {
+export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onLoginClick, onGetStartedClick, onSplineLoad }) => {
   const router = useRouter();
 
   const handleAboutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -66,7 +66,7 @@ export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onLoginClick,
           <h1>Welcome to Wise Track</h1>
         </div>
         <section className="spline-section" style={{ zIndex: 1 }}>
-          <Spline scene="https://prod.spline.design/ppVuzJrx1DQ1DkJA/scene.splinecode" />
+          <Spline scene="https://prod.spline.design/ppVuzJrx1DQ1DkJA/scene.splinecode" onLoad={onSplineLoad} />
         </section>
       </section>
 

@@ -17,6 +17,11 @@ import {
   Legend,
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
+import Icon from '@/components/atoms/Icon/Icon';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import '../../organisms/Modal/AddIncomeModal.css';
+import toast from 'react-hot-toast';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -34,6 +39,10 @@ const Reports = () => {
   const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
   const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
   const router = useRouter();
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [animateExportOut, setAnimateExportOut] = useState(false);
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -48,12 +57,10 @@ const Reports = () => {
 
     const fetchData = async () => {
       try {
-        // Fetch user data
         const userRes = await axios.get(`${apiUrl}/users/${id}`);
         const { name, email } = userRes.data;
         setUser({ name, email, avatarUrl: '' });
 
-        // Fetch income and expenses
         const [incomeRes, expenseRes] = await Promise.all([
           axios.get(`${apiUrl}/transactions/income?user_id=${id}`),
           axios.get(`${apiUrl}/transactions/expenses?user_id=${id}`),
@@ -71,12 +78,10 @@ const Reports = () => {
     fetchData();
   }, []);
 
-  // Calculate totals
   const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
   const totalExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
   const netBalance = totalIncome - totalExpenses;
 
-  // Helper to group by month (MMM format)
   const groupByMonth = (data: TransactionEntry[]) => {
     return data.reduce<Record<string, number>>((acc, tx) => {
       const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
@@ -88,12 +93,10 @@ const Reports = () => {
   const incomeByMonth = groupByMonth(incomeData);
   const expensesByMonth = groupByMonth(expenseData);
 
-  // Get all months from both income and expenses
   const allMonths = Array.from(
     new Set([...Object.keys(incomeByMonth), ...Object.keys(expensesByMonth)])
   );
 
-  // Sort months by order in year (Jan - Dec)
   const monthOrder = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -103,7 +106,6 @@ const Reports = () => {
     (a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b)
   );
 
-  // Prepare bar chart data
   const barData = {
     labels: allMonths,
     datasets: [
@@ -124,7 +126,6 @@ const Reports = () => {
     ],
   };
 
-  // Monthly summary for table: show income, expenses, net by month
   const monthlySummary = allMonths.map((month) => {
     const income = incomeByMonth[month] || 0;
     const expenses = expensesByMonth[month] || 0;
@@ -134,7 +135,7 @@ const Reports = () => {
       expenses,
       net: income - expenses,
     };
-  }).reverse(); // Reverse to show recent months first
+  }).reverse(); 
 
   const chartOptions = {
     responsive: true,
@@ -184,24 +185,165 @@ const Reports = () => {
     },
   };
 
+  const handleExport = async (type: 'income' | 'expenses' | 'both', format: 'csv' | 'pdf') => {
+    setExportLoading(true);
+    try {
+      if (type === 'income') {
+        if (format === 'csv') exportIncomeCSV();
+        else exportIncomePDF();
+      } else if (type === 'expenses') {
+        if (format === 'csv') exportExpensesCSV();
+        else exportExpensesPDF();
+      } else if (type === 'both') {
+        if (format === 'csv') exportBothCSV();
+        else exportBothPDF();
+      }
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  function exportIncomeCSV() {
+    if (!incomeData.length) {
+      toast.error('No income data to export!');
+      return;
+    }
+    const header = ['Date', 'Source', 'Amount'];
+    const rows = incomeData.map(({ date, description, amount }) => [date, description || '', amount.toFixed(2)]);
+    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'income.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Income CSV exported!');
+  }
+
+  function exportExpensesCSV() {
+    if (!expenseData.length) {
+      toast.error('No expenses data to export!');
+      return;
+    }
+    const header = ['Date', 'Category', 'Amount'];
+    const rows = expenseData.map(({ date, description, amount }) => [date, description || '', amount.toFixed(2)]);
+    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'expenses.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Expenses CSV exported!');
+  }
+
+  function exportBothCSV() {
+    if (!incomeData.length && !expenseData.length) {
+      toast.error('No data to export!');
+      return;
+    }
+    const header = ['Type', 'Date', 'Description', 'Amount'];
+    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', amount.toFixed(2)]);
+    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', amount.toFixed(2)]);
+    const csvContent = [header, ...incomeRows, ...expenseRows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'all-transactions.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('All data CSV exported!');
+  }
+
+  function exportIncomePDF() {
+    if (!incomeData.length) {
+      toast.error('No income data to export!');
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text('Income Transactions', 14, 20);
+    const headers = [['Date', 'Description', 'Amount']];
+    const data = incomeData.map(({ date, description, amount }) => [date, description || '', `$${amount.toFixed(2)}`]);
+    autoTable(doc, { startY: 30, head: headers, body: data, styles: { fontSize: 10 }, headStyles: { fillColor: [108, 99, 255] } });
+    doc.save('income.pdf');
+    toast.success('Income PDF exported!');
+  }
+
+  function exportExpensesPDF() {
+    if (!expenseData.length) {
+      toast.error('No expenses data to export!');
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text('Expenses Report', 14, 20);
+    const headers = [['Date', 'Description', 'Amount']];
+    const data = expenseData.map(({ date, description, amount }) => [date, description || '', `$${amount.toFixed(2)}`]);
+    autoTable(doc, { startY: 30, head: headers, body: data, styles: { fontSize: 10 }, headStyles: { fillColor: [165, 180, 252] } });
+    doc.save('expenses.pdf');
+    toast.success('Expenses PDF exported!');
+  }
+  
+  function exportBothPDF() {
+    if (!incomeData.length && !expenseData.length) {
+      toast.error('No data to export!');
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text('All Transactions', 14, 20);
+    const headers = [['Type', 'Date', 'Description', 'Amount']];
+    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', `$${amount.toFixed(2)}`]);
+    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', `$${amount.toFixed(2)}`]);
+    autoTable(doc, { startY: 30, head: headers, body: [...incomeRows, ...expenseRows], styles: { fontSize: 10 }, headStyles: { fillColor: [108, 99, 255] } });
+    doc.save('all-transactions.pdf');
+    toast.success('All data PDF exported!');
+  }
+
+  // Open modal
+  const openExportModal = () => {
+    setShowExportModal(true);
+    setAnimateExportOut(false);
+    setExportModalOpen(true);
+  };
+  // Close modal with animation
+  const closeExportModal = () => {
+    setAnimateExportOut(true);
+    setTimeout(() => {
+      setShowExportModal(false);
+      setExportModalOpen(false);
+    }, 350);
+  };
+
   if (loading) {
     return <div style={{ padding: 20 }}>Loading...</div>;
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fff 70%, #f8f6ff 100%)',
-      }}
-    >
+    <>
       <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
-        <h1 className="header">Reports</h1>
+        <h1 className="header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          Reports
+          <button
+            className="cardAddBtn add-expand-btn"
+            onClick={openExportModal}
+            aria-label="Export Data"
+          >
+            <Icon name="Download" size={18} />
+            <span className="add-btn-text">Export Data</span>
+          </button>
+        </h1>
         <div className="overviewGrid">
           <div className="card">
             <span className="cardIcon"><PiggyBank /></span>
@@ -263,9 +405,56 @@ const Reports = () => {
             </tbody>
           </table>
         </div>
+        {showExportModal && (
+          <div className={`modal-overlay${animateExportOut ? ' modal-overlay-exit' : ' modal-overlay-enter'}`} onClick={closeExportModal}>
+            <div className={`modal-card${animateExportOut ? ' modal-card-exit' : ' modal-card-enter'}`} onClick={e => e.stopPropagation()} style={{ minWidth: 340 }}>
+              <button className="modal-close-btn" aria-label="Close modal" type="button" onClick={closeExportModal}>
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 6L16 16M16 6L6 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+                </svg>
+              </button>
+              <h2 className="modal-title">Export Data</h2>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#471d8b', marginBottom: 6 }}>Income</div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('income', 'csv')}>
+                      <Icon name="FileSpreadsheet" size={18} /> Export CSV
+                    </button>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('income', 'pdf')}>
+                      <Icon name="FileSignature" size={18} /> Export PDF
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#471d8b', marginBottom: 6 }}>Expenses</div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('expenses', 'csv')}>
+                      <Icon name="FileSpreadsheet" size={18} /> Export CSV
+                    </button>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('expenses', 'pdf')}>
+                      <Icon name="FileSignature" size={18} /> Export PDF
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#471d8b', marginBottom: 6 }}>Both</div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('both', 'csv')}>
+                      <Icon name="FileSpreadsheet" size={18} /> Export CSV
+                    </button>
+                    <button className="export-btn-slim" disabled={exportLoading} onClick={() => handleExport('both', 'pdf')}>
+                      <Icon name="FileSignature" size={18} /> Export PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <Copyright />
       </div>
-    </div>
+    </>
   );
 };
 

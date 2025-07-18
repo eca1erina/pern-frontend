@@ -23,6 +23,9 @@ import { useRouter } from 'next/navigation';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Spline from '@splinetool/react-spline';
+import Select from 'react-select';
+import { useLoader } from '@/context/LoaderContext';
 
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -70,6 +73,14 @@ const chartOptions = {
 };
 
 const Expenses = () => {
+  const { show, hide } = useLoader();
+  useEffect(() => {
+    show();
+    const timer = setTimeout(() => {
+      hide();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
@@ -79,6 +90,18 @@ const Expenses = () => {
   const [showModal, setShowModal] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
+
+  // Currency selector state
+  const currencies = [
+    { code: 'USD', symbol: '$' },
+    { code: 'EUR', symbol: '€' },
+    { code: 'RON', symbol: 'RON   ' },
+    { code: 'GBP', symbol: '£' },
+    { code: 'JPY', symbol: '¥' },
+    { code: 'CAD', symbol: 'C$' },
+    { code: 'AUD', symbol: 'A$' },
+  ];
+  const [selectedCurrency, setSelectedCurrency] = useState(currencies[0]);
 
   const router = useRouter();
 
@@ -120,14 +143,12 @@ const Expenses = () => {
       setTotalExpenses(expenseSum);
       setRecentExpenses(filteredExpenses);
 
-      // ✅ Group by category
       const categoryMap: Record<string, number> = {};
       filteredExpenses.forEach((expense) => {
         const category = expense.description || expense.category_id || 'Other';
         categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
       });
 
-      // ✅ Sort categories alphabetically for consistent chart display
       const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
 
       setCategoryChartData({
@@ -195,46 +216,7 @@ const Expenses = () => {
     }
   };
 
-  const exportToCSV = () => {
-  if (!recentExpenses.length) return;
-
-  const headers = ['Date', 'Category', 'Amount'];
-  const rows = recentExpenses.map((e) => [
-    e.date,
-    e.description || e.category_id,
-    e.amount,
-  ]);
-  const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'expenses.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const exportToPDF = () => {
-  const doc = new jsPDF();
-  doc.text('Expenses Report', 14, 20);
-
-  autoTable(doc, {
-    startY: 30,
-    head: [['Date', 'Category', 'Amount']],
-    body: recentExpenses.map((e) => [
-      e.date,
-      e.description || e.category_id,
-      `$${Number(e.amount).toFixed(2)}`,
-    ]),
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [165, 180, 252] },
-  });
-
-  doc.save('expenses.pdf');
-};
+  const currencyOptions = currencies.map(c => ({ value: c.code, label: c.code, symbol: c.symbol }));
 
   return (
     <>
@@ -243,57 +225,87 @@ const exportToPDF = () => {
         <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
-        <h1 className="header">Expenses</h1>
+        <h1 className="header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          Expenses
+          <button
+            className="cardAddBtn add-expand-btn"
+            onClick={() => setShowModal(true)}
+            aria-label="Add Expense"
+          >
+            <Plus size={18} color="#fff" />
+            <span className="add-btn-text">Add Expense</span>
+          </button>
+        </h1>
 
-        <div className="overviewGrid">
-          <div className="card" style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 32, marginBottom: 32 }}>
+          <div className="card" style={{ position: 'relative', minWidth: 420, width: 470, paddingRight: 32 }}>
             <span className="cardIcon">
               <Wallet />
             </span>
+            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
+              <Select
+                options={currencyOptions}
+                value={currencyOptions.find(opt => opt.value === selectedCurrency.code)}
+                onChange={opt => setSelectedCurrency(currencies.find(c => c.code === opt?.value) || currencies[0])}
+                isSearchable={false}
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    background: 'linear-gradient(90deg, #ede7ff 60%, #e0e7ff 100%)',
+                    color: 'var(--primary-purple)',
+                    border: state.isFocused ? '2px solid #a18aff' : '2px solid #cfc2fa',
+                    borderRadius: 16,
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    minHeight: 'unset',
+                    boxShadow: state.isFocused ? '0 0 0 2px #a18aff' : '0 2px 8px rgba(123, 108, 255, 0.10)',
+                    padding: '0.1rem 0.2rem',
+                    cursor: 'pointer',
+                    transition: 'border 0.18s, box-shadow 0.18s',
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: 'var(--primary-purple)',
+                    fontWeight: 700,
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    borderRadius: 16,
+                    background: '#f4f2fd',
+                    boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)',
+                    zIndex: 10,
+                    overflow: 'hidden',
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    color: state.isSelected ? '#fff' : '#471d8b',
+                    background: state.isSelected
+                      ? 'linear-gradient(90deg, #a18aff 60%, #7b6cff 100%)'
+                      : state.isFocused
+                        ? 'linear-gradient(90deg, #ede7ff 60%, #e0e7ff 100%)'
+                        : 'transparent',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    borderRadius: 16,
+                    margin: '2px 8px',
+                    transition: 'background 0.18s, transform 0.18s',
+                    transform: state.isFocused ? 'scale(1.04)' : 'scale(1)',
+                  }),
+                  dropdownIndicator: (base) => ({
+                    ...base,
+                    color: 'var(--primary-purple)',
+                  }),
+                  indicatorSeparator: () => ({ display: 'none' }),
+                  input: (base) => ({ ...base, color: 'var(--primary-purple)' }),
+                }}
+              />
+            </div>
             <span className="cardTitle">Total Expenses</span>
-            <span className="cardValue">${totalExpenses.toLocaleString()}</span>
-            <button
-              className="cardAddBtn"
-              onClick={() => setShowModal(true)}
-              aria-label="Add Expense"
-            >
-              <Plus size={18} color="#fff" />
-            </button>
+            <span className="cardValue">{selectedCurrency.symbol}{totalExpenses.toLocaleString()}</span>
           </div>
-          <div className="card" style={{ position: 'relative' }}>
-  <span className="cardTitle">Export Data</span>
-  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-    <button
-      onClick={exportToCSV}
-      style={{
-        backgroundColor: '#4f46e5',
-        border: 'none',
-        padding: '8px 12px',
-        color: '#fff',
-        borderRadius: 6,
-        fontWeight: 500,
-        cursor: 'pointer',
-      }}
-    >
-      Export CSV
-    </button>
-    <button
-      onClick={exportToPDF}
-      style={{
-        backgroundColor: '#10b981',
-        border: 'none',
-        padding: '8px 12px',
-        color: '#fff',
-        borderRadius: 6,
-        fontWeight: 500,
-        cursor: 'pointer',
-      }}
-    >
-      Export PDF
-    </button>
-  </div>
-</div>
-
+          <div style={{ minWidth: 380, width: 410, height: 220, borderRadius: 24, overflow: 'hidden', background: 'transparent', boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)' }}>
+            <Spline scene="https://prod.spline.design/XkyTLSM4UShB7kNW/scene.splinecode" />
+          </div>
         </div>
 
         <div className="chartContainer">

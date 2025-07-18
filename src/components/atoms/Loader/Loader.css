@@ -1,0 +1,29 @@
+.global-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(120deg, #fff 60%, #e0e7ff 85%, #d1c4f6 100%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader {
+  border-top: 2px solid #f59e42;
+  border-radius: 9999px;
+  background: #fde68a;
+  animation: spin 1s linear infinite;
+  aspect-ratio: 1 / 1;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #b45309;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+} 

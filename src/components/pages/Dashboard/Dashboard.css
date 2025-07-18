@@ -64,14 +64,14 @@
 }
 
 .cardTitle, .totalIncomeLabel {
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   font-weight: 600;
   color: var(--header-purple);
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
 }
 
 .cardValue {
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 800;
   color: var(--header-purple);
 }
@@ -264,11 +264,85 @@
   box-shadow: 0 6px 18px rgba(108, 71, 255, 0.18);
   outline: none;
 }
+
 .cardAddBtn svg {
   color: #fff;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: block;
+  margin-left: auto;
+}
+
+.add-expand-btn {
+  width: 36px;
+  background: linear-gradient(135deg, #a18aff 0%, #7b6cff 100%);
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow: visible;
+  display: grid;
+  grid-template-columns: 36px auto;
+  align-items: center;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.10);
+  cursor: pointer;
+  position: static;
+  padding: 0;
+}
+
+.add-expand-btn:hover, .add-expand-btn:focus {
+  width: 150px;
+  border-radius: 24px;
+}
+
+.add-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.add-expand-btn .add-btn-text {
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  overflow: hidden;
+  margin-left: 0.56rem;
+  padding-right: 0.4rem;
+  white-space: nowrap;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.add-expand-btn:hover .add-btn-text, .add-expand-btn:focus .add-btn-text {
+  max-width: 150px;
+  opacity: 1;
+}
+
+.export-btn-slim {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgb(239, 237, 248);
+  color: #471d8b;
+  border: 1.5px solid #d5cee9;
+  border-radius: 12px;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+  box-shadow: none;
+  outline: none;
+  min-width: 120px;
+}
+.export-btn-slim:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.export-btn-slim:hover:not(:disabled), .export-btn-slim:focus:not(:disabled) {
+  background: #ede7ff;
+  color: #6c63ff;
+  border-color: #cfc1ff;
 }
 
 @media (max-width: 1200px) {
