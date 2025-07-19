@@ -209,7 +209,7 @@ const Reports = () => {
       return;
     }
     const header = ['Date', 'Source', 'Amount'];
-    const rows = incomeData.map(({ date, description, amount }) => [date, description || '', amount.toFixed(2)]);
+    const rows = incomeData.map(({ date, description, amount }) => [date, description || '', Number(amount).toFixed(2)]);
     const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -229,7 +229,7 @@ const Reports = () => {
       return;
     }
     const header = ['Date', 'Category', 'Amount'];
-    const rows = expenseData.map(({ date, description, amount }) => [date, description || '', amount.toFixed(2)]);
+    const rows = expenseData.map(({ date, description, amount }) => [date, description || '', Number(amount).toFixed(2)]);
     const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -249,8 +249,8 @@ const Reports = () => {
       return;
     }
     const header = ['Type', 'Date', 'Description', 'Amount'];
-    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', amount.toFixed(2)]);
-    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', amount.toFixed(2)]);
+    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', Number(amount).toFixed(2)]);
+    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', Number(amount).toFixed(2)]);
     const csvContent = [header, ...incomeRows, ...expenseRows].map(e => e.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -272,7 +272,7 @@ const Reports = () => {
     const doc = new jsPDF();
     doc.text('Income Transactions', 14, 20);
     const headers = [['Date', 'Description', 'Amount']];
-    const data = incomeData.map(({ date, description, amount }) => [date, description || '', `$${amount.toFixed(2)}`]);
+    const data = incomeData.map(({ date, description, amount }) => [date, description || '', `$${Number(amount).toFixed(2)}`]);
     autoTable(doc, { startY: 30, head: headers, body: data, styles: { fontSize: 10 }, headStyles: { fillColor: [108, 99, 255] } });
     doc.save('income.pdf');
     toast.success('Income PDF exported!');
@@ -286,7 +286,7 @@ const Reports = () => {
     const doc = new jsPDF();
     doc.text('Expenses Report', 14, 20);
     const headers = [['Date', 'Description', 'Amount']];
-    const data = expenseData.map(({ date, description, amount }) => [date, description || '', `$${amount.toFixed(2)}`]);
+    const data = expenseData.map(({ date, description, amount }) => [date, description || '', `$${Number(amount).toFixed(2)}`]);
     autoTable(doc, { startY: 30, head: headers, body: data, styles: { fontSize: 10 }, headStyles: { fillColor: [165, 180, 252] } });
     doc.save('expenses.pdf');
     toast.success('Expenses PDF exported!');
@@ -300,8 +300,8 @@ const Reports = () => {
     const doc = new jsPDF();
     doc.text('All Transactions', 14, 20);
     const headers = [['Type', 'Date', 'Description', 'Amount']];
-    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', `$${amount.toFixed(2)}`]);
-    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', `$${amount.toFixed(2)}`]);
+    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', `$${Number(amount).toFixed(2)}`]);
+    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', `$${Number(amount).toFixed(2)}`]);
     autoTable(doc, { startY: 30, head: headers, body: [...incomeRows, ...expenseRows], styles: { fontSize: 10 }, headStyles: { fillColor: [108, 99, 255] } });
     doc.save('all-transactions.pdf');
     toast.success('All data PDF exported!');
