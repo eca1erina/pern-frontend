@@ -22,6 +22,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import '../../organisms/Modal/AddIncomeModal.css';
 import toast from 'react-hot-toast';
+import { saveAs } from 'file-saver';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -31,6 +32,8 @@ interface TransactionEntry {
   amount: number;
   description?: string;
   type: 'income' | 'expense';
+  category_id: string;
+  origin?: string;
 }
 
 const Reports = () => {
@@ -56,24 +59,63 @@ const Reports = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     const fetchData = async () => {
-      try {
-        const userRes = await axios.get(`${apiUrl}/users/${id}`);
-        const { name, email } = userRes.data;
-        setUser({ name, email, avatarUrl: '' });
+  try {
+    const userRes = await axios.get(`${apiUrl}/users/${id}`);
+    const { name, email } = userRes.data;
+    setUser({ name, email, avatarUrl: '' });
 
-        const [incomeRes, expenseRes] = await Promise.all([
-          axios.get(`${apiUrl}/transactions/income?user_id=${id}`),
-          axios.get(`${apiUrl}/transactions/expenses?user_id=${id}`),
-        ]);
+    const [incomeRes, expenseRes] = await Promise.all([
+      axios.get(`${apiUrl}/transactions/income?user_id=${id}`),
+      axios.get(`${apiUrl}/transactions/expenses?user_id=${id}`),
+    ]);
 
-        setIncomeData(incomeRes.data);
-        setExpenseData(expenseRes.data);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const backendIncome: TransactionEntry[] = incomeRes.data;
+    const backendExpenses: TransactionEntry[] = expenseRes.data;
+
+    // Parse mock bank data from sessionStorage
+    const mockIncomeRaw = sessionStorage.getItem('bank_income');
+
+    const mockIncome: TransactionEntry[] = mockIncomeRaw
+      ? JSON.parse(mockIncomeRaw)
+      : [];
+
+    const mockExpensesRaw = sessionStorage.getItem('bank_expense');
+
+const mockExpenses: TransactionEntry[] = mockExpensesRaw
+  ? JSON.parse(mockExpensesRaw).map((tx: any, index: number) => {
+      const parsedAmount = Number(tx.amount);
+      const parsedDate = new Date(tx.date);
+      if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
+
+      return {
+        id: tx.id ?? -(index + 1),
+        date: tx.date,
+        amount: parsedAmount,
+        description: tx.description || 'Bank Expense',
+        type: 'expense',
+        category_id: tx.category_id || 'bank',
+        origin: 'mock-bank',
+      };
+    }).filter(Boolean)
+  : [];
+
+    // Merge backend and mock data
+    const combinedIncome = [...backendIncome, ...mockIncome];
+    const combinedExpenses = [...backendExpenses, ...mockExpenses];
+
+    // Sort by date descending (optional)
+    combinedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    combinedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    setIncomeData(combinedIncome);
+    setExpenseData(combinedExpenses);
+  } catch (error) {
+    console.error('Error loading data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     fetchData();
   }, []);
@@ -204,65 +246,68 @@ const Reports = () => {
   };
 
   function exportIncomeCSV() {
-    if (!incomeData.length) {
-      toast.error('No income data to export!');
-      return;
-    }
-    const header = ['Date', 'Source', 'Amount'];
-    const rows = incomeData.map(({ date, description, amount }) => [date, description || '', Number(amount).toFixed(2)]);
-    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'income.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('Income CSV exported!');
+  if (!incomeData.length) {
+    toast.error('No income data to export!');
+    return;
   }
 
-  function exportExpensesCSV() {
-    if (!expenseData.length) {
-      toast.error('No expenses data to export!');
-      return;
-    }
-    const header = ['Date', 'Category', 'Amount'];
-    const rows = expenseData.map(({ date, description, amount }) => [date, description || '', Number(amount).toFixed(2)]);
-    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'expenses.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('Expenses CSV exported!');
+  const header = ['Date', 'Source', 'Amount'];
+  const rows = incomeData.map(({ date, description, amount }) => [
+    date,
+    description || '',
+    Number(amount).toFixed(2)
+  ]);
+  const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  saveAs(blob, 'income.csv');
+  toast.success('Income CSV exported!');
+}
+
+function exportExpensesCSV() {
+  if (!expenseData.length) {
+    toast.error('No expenses data to export!');
+    return;
   }
 
-  function exportBothCSV() {
-    if (!incomeData.length && !expenseData.length) {
-      toast.error('No data to export!');
-      return;
-    }
-    const header = ['Type', 'Date', 'Description', 'Amount'];
-    const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', Number(amount).toFixed(2)]);
-    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', Number(amount).toFixed(2)]);
-    const csvContent = [header, ...incomeRows, ...expenseRows].map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'all-transactions.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('All data CSV exported!');
+  const header = ['Date', 'Category ID', 'Amount'];
+  const rows = expenseData.map(({ date, category_id, amount }) => [
+    date,
+    category_id || '',
+    Number(amount).toFixed(2)
+  ]);
+  const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  saveAs(blob, 'expenses.csv');
+  toast.success('Expenses CSV exported!');
+}
+
+function exportBothCSV() {
+  if (!incomeData.length && !expenseData.length) {
+    toast.error('No data to export!');
+    return;
   }
+
+  const header = ['Type', 'Date', 'Description', 'Amount'];
+  const incomeRows = incomeData.map(({ date, description, amount }) => [
+    'Income',
+    date,
+    description || '',
+    Number(amount).toFixed(2)
+  ]);
+  const expenseRows = expenseData.map(({ date, category_id, amount }) => [
+    'Expense',
+    date,
+    category_id || '',
+  `$${Number(amount).toFixed(2)}`
+  ]);
+  const csvContent = [header, ...incomeRows, ...expenseRows].map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  saveAs(blob, 'all-transactions.csv');
+  toast.success('All data CSV exported!');
+}
 
   function exportIncomePDF() {
     if (!incomeData.length) {
@@ -279,18 +324,28 @@ const Reports = () => {
   }
 
   function exportExpensesPDF() {
-    if (!expenseData.length) {
-      toast.error('No expenses data to export!');
-      return;
-    }
-    const doc = new jsPDF();
-    doc.text('Expenses Report', 14, 20);
-    const headers = [['Date', 'Description', 'Amount']];
-    const data = expenseData.map(({ date, description, amount }) => [date, description || '', `$${Number(amount).toFixed(2)}`]);
-    autoTable(doc, { startY: 30, head: headers, body: data, styles: { fontSize: 10 }, headStyles: { fillColor: [165, 180, 252] } });
-    doc.save('expenses.pdf');
-    toast.success('Expenses PDF exported!');
+  if (!expenseData.length) {
+    toast.error('No expenses data to export!');
+    return;
   }
+  const doc = new jsPDF();
+  doc.text('Expenses Report', 14, 20);
+  const headers = [['Date', 'Category ID', 'Amount']];
+  const data = expenseData.map(({ date, category_id, amount }) => [
+    date,
+    category_id || 'N/A',
+    `$${Number(amount).toFixed(2)}`
+  ]);
+  autoTable(doc, {
+    startY: 30,
+    head: headers,
+    body: data,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [165, 180, 252] },
+  });
+  doc.save('expenses.pdf');
+  toast.success('Expenses PDF exported!');
+}
   
   function exportBothPDF() {
     if (!incomeData.length && !expenseData.length) {
@@ -301,7 +356,12 @@ const Reports = () => {
     doc.text('All Transactions', 14, 20);
     const headers = [['Type', 'Date', 'Description', 'Amount']];
     const incomeRows = incomeData.map(({ date, description, amount }) => ['Income', date, description || '', `$${Number(amount).toFixed(2)}`]);
-    const expenseRows = expenseData.map(({ date, description, amount }) => ['Expense', date, description || '', `$${Number(amount).toFixed(2)}`]);
+    const expenseRows = expenseData.map(({ date, category_id, amount }) => [
+    'Expense',
+    date,
+    category_id || '',
+    `$${Number(amount).toFixed(2)}`,
+    ]);
     autoTable(doc, { startY: 30, head: headers, body: [...incomeRows, ...expenseRows], styles: { fontSize: 10 }, headStyles: { fillColor: [108, 99, 255] } });
     doc.save('all-transactions.pdf');
     toast.success('All data PDF exported!');
@@ -364,11 +424,7 @@ const Reports = () => {
         <div className="chartContainer">
           <div className="chartHeader">
             <h2>Income vs Expenses</h2>
-            <div className="filterGroup chartFilters">
-              <button className="chartFilter active">1m</button>
-              <button className="chartFilter">6m</button>
-              <button className="chartFilter">1y</button>
-            </div>
+            
           </div>
           <div style={{ width: '100%', height: 340 }}>
             <Bar data={barData} options={chartOptions} />

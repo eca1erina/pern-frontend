@@ -20,9 +20,6 @@ import {
   Legend,
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
-
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import Spline from '@splinetool/react-spline';
 import Select from 'react-select';
 import { useLoader } from '@/context/LoaderContext';
@@ -106,73 +103,99 @@ const Expenses = () => {
   const router = useRouter();
 
   const fetchUserData = async () => {
-    const session = sessionStorage.getItem('user');
-    if (!session) {
-      console.error('No user session found.');
-      setLoading(false);
-      return;
-    }
+  const session = sessionStorage.getItem('user');
+  if (!session) {
+    console.error('No user session found.');
+    setLoading(false);
+    return;
+  }
 
-    const { id } = JSON.parse(session);
+  const { id } = JSON.parse(session);
 
-    try {
-      const userRes = await getData(`/users/${id}`);
-      const { name, email } = userRes;
-      setUser({ name, email, avatarUrl: '' });
+  try {
+    const userRes = await getData(`/users/${id}`);
+    const { name, email } = userRes;
+    setUser({ name, email, avatarUrl: '' });
 
-      const expenseData = await getData(`/transactions/expenses?user_id=${id}`);
+    const backendExpenses = await getData(`/transactions/expenses?user_id=${id}`);
+    const mockExpenses = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-      const now = new Date();
-      let filteredExpenses = [...expenseData];
+    // Add "source" tag to identify mock bank expenses (optional)
+    const allExpenses = [
+      ...backendExpenses,
+      ...mockExpenses.map((tx: any) => ({
+  ...tx,
+  date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
+  source: 'mock-bank',
+})),
 
-      if (filterRange === '1m') {
-        filteredExpenses = filteredExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1))
-        );
-      } else if (filterRange === '6m') {
-        filteredExpenses = filteredExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6))
-        );
-      } else if (filterRange === '1y') {
-        filteredExpenses = filteredExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1))
-        );
-      }
+    ];
 
-      const expenseSum = filteredExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
-      setTotalExpenses(expenseSum);
-      setRecentExpenses(filteredExpenses);
+    const now = new Date();
+    // Set Total Expenses (no filtering)
+const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
+setTotalExpenses(totalSum);
 
-      const categoryMap: Record<string, number> = {};
-      filteredExpenses.forEach((expense) => {
-        const category = expense.description || expense.category_id || 'Other';
-        categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
-      });
+// Set Recent Expenses (no filtering either)
+setRecentExpenses(allExpenses);
 
-      const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
+// Apply time filtering only for chart data
+let chartExpenses = [...allExpenses];
+if (filterRange === '1m') {
+  chartExpenses = chartExpenses.filter(
+    (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1))
+  );
+} else if (filterRange === '6m') {
+  chartExpenses = chartExpenses.filter(
+    (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6))
+  );
+} else if (filterRange === '1y') {
+  chartExpenses = chartExpenses.filter(
+    (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1))
+  );
+}
 
-      setCategoryChartData({
-        labels: sortedCategories,
-        datasets: [
-          {
-            label: 'Expenses',
-            data: sortedCategories.map((cat) => categoryMap[cat]),
-            backgroundColor: '#a5b4fc',
-            borderRadius: 8,
-            maxBarThickness: 32,
-          },
-        ],
-      });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
+// Generate chart data from filtered list
+const categoryMap: Record<string, number> = {};
+chartExpenses.forEach((expense) => {
+  const category = expense.description || expense.category_id || 'Other';
+  categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
+});
+
+const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
+setCategoryChartData({
+  labels: sortedCategories,
+  datasets: [
+    {
+      label: 'Expenses',
+      data: sortedCategories.map((cat) => categoryMap[cat]),
+      backgroundColor: '#a5b4fc',
+      borderRadius: 8,
+      maxBarThickness: 32,
+    },
+  ],
+});
+
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchUserData();
+
+  const handleBankDataChange = () => {
+    fetchUserData(); // Re-fetch when bank data changes
   };
 
-  useEffect(() => {
-    fetchUserData();
-  }, [filterRange]);
+  window.addEventListener('bankDataChanged', handleBankDataChange);
+
+  return () => {
+    window.removeEventListener('bankDataChanged', handleBankDataChange);
+  };
+}, [filterRange]);
 
   const handleAddExpense = async (expense: {
     date: string;
@@ -303,9 +326,6 @@ const Expenses = () => {
             <span className="cardTitle">Total Expenses</span>
             <span className="cardValue">{selectedCurrency.symbol}{totalExpenses.toLocaleString()}</span>
           </div>
-          <div style={{ minWidth: 380, width: 410, height: 220, borderRadius: 24, overflow: 'hidden', background: 'transparent', boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)' }}>
-            <Spline scene="https://prod.spline.design/XkyTLSM4UShB7kNW/scene.splinecode" />
-          </div>
         </div>
 
         <div className="chartContainer">
@@ -349,7 +369,7 @@ const Expenses = () => {
               {recentExpenses.map((entry) => (
                 <tr key={entry.id} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.date}</td>
-                  <td style={{ padding: '10px 0' }}>{entry.description || entry.category_id}</td>
+                  <td style={{ padding: '10px 0' }}>{entry.category_id}</td>
                   <td
                     style={{
                       textAlign: 'right',

@@ -56,6 +56,7 @@ const Income = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IncomeEntry | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  
 
   // Currency selector state
   const currencies = [
@@ -115,30 +116,67 @@ const Income = () => {
   };
 
   useEffect(() => {
-    const session = sessionStorage.getItem('user');
-    if (!session) {
-      console.error('No user session found.');
+  const session = sessionStorage.getItem('user');
+  if (!session) {
+    console.error('No user session found.');
+    setLoading(false);
+    return;
+  }
+
+  const { id } = JSON.parse(session);
+
+  const fetchIncomeData = async () => {
+    try {
+      const userRes = await getData(`/users/${id}`);
+      setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
+
+      // 1. Backend income
+      const backendIncome = await getData(`/transactions/income?user_id=${id}`);
+      const formattedBackend = backendIncome.map((tx: any) => ({
+        id: tx.id,
+        date: tx.date,
+        source: tx.description || 'Income',
+        amount: Number(tx.amount),
+      }));
+
+      // 2. Mock bank income
+      const rawMockIncome = sessionStorage.getItem('bank_income') || '[]';
+      const parsedMock = JSON.parse(rawMockIncome);
+      const formattedMock = parsedMock.map((tx: any, idx: number) => ({
+        id: tx.id ?? `mock-${idx}`, // fallback id
+        date: tx.date,
+        source: tx.source || tx.origin || tx.description || 'Bank Income',
+        amount: Number(tx.amount),
+      }));
+
+      // 3. Merge, sort
+      const allIncome = [...formattedBackend, ...formattedMock].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      setIncomeEntries(allIncome);
+    } catch (error) {
+      console.error('Error loading income data:', error);
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    const { id } = JSON.parse(session);
+  fetchIncomeData();
 
-    const fetchUserData = async () => {
-      try {
-        const userRes = await getData(`/users/${id}`);
-        const { name, email } = userRes;
-        setUser({ name, email, avatarUrl: '' });
-        await fetchIncomeData(id);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // ✅ 4. Re-fetch when bank data changes
+  const handleBankDataChanged = () => {
+    fetchIncomeData();
+  };
 
-    fetchUserData();
-  }, []);
+  window.addEventListener('bankDataChanged', handleBankDataChanged);
+
+  return () => {
+    window.removeEventListener('bankDataChanged', handleBankDataChanged);
+  };
+}, []);
+
+
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -331,9 +369,7 @@ const Income = () => {
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">{selectedCurrency.symbol}{totalIncome.toLocaleString()}</span>
           </div>
-          <div style={{ minWidth: 380, width: 410, height: 220, borderRadius: 24, overflow: 'hidden', background: 'transparent', boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)' }}>
-            <Spline scene="https://prod.spline.design/XkyTLSM4UShB7kNW/scene.splinecode" />
-          </div>
+
         </div>
 
         <div className="chartContainer">
