@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import Spline from '@splinetool/react-spline';
 import Select from 'react-select';
 import { useLoader } from '@/context/LoaderContext';
+import { fetchCurrencyRate } from '@/utils/currency';
 
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -88,17 +89,25 @@ const Expenses = () => {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
 
-  // Currency selector state
-  const currencies = [
-    { code: 'USD', symbol: '$' },
-    { code: 'EUR', symbol: '€' },
-    { code: 'RON', symbol: 'RON   ' },
-    { code: 'GBP', symbol: '£' },
-    { code: 'JPY', symbol: '¥' },
-    { code: 'CAD', symbol: 'C$' },
-    { code: 'AUD', symbol: 'A$' },
-  ];
-  const [selectedCurrency, setSelectedCurrency] = useState(currencies[0]);
+  const [currency, setCurrency] = useState<string>('USD');
+const [rate, setRate] = useState<number>(1);
+const [symbol, setSymbol] = useState<string>('$');
+
+useEffect(() => {
+  const savedCurrency = sessionStorage.getItem("currency") || "USD";
+
+  const loadCurrency = async () => {
+    const data = await fetchCurrencyRate(savedCurrency);
+    if (data) {
+      setCurrency(data.currency);
+      setRate(data.rate);
+      setSymbol(data.symbol);
+    }
+  };
+
+  loadCurrency();
+}, []);
+
 
   const router = useRouter();
 
@@ -120,7 +129,6 @@ const Expenses = () => {
     const backendExpenses = await getData(`/transactions/expenses?user_id=${id}`);
     const mockExpenses = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-    // Add "source" tag to identify mock bank expenses (optional)
     const allExpenses = [
       ...backendExpenses,
       ...mockExpenses.map((tx: any) => ({
@@ -168,7 +176,7 @@ setCategoryChartData({
   datasets: [
     {
       label: 'Expenses',
-      data: sortedCategories.map((cat) => categoryMap[cat]),
+      data: sortedCategories.map((cat) => categoryMap[cat] * rate),
       backgroundColor: '#a5b4fc',
       borderRadius: 8,
       maxBarThickness: 32,
@@ -239,8 +247,6 @@ useEffect(() => {
     }
   };
 
-  const currencyOptions = currencies.map(c => ({ value: c.code, label: c.code, symbol: c.symbol }));
-
   return (
     <>
       <Sidebar />
@@ -266,65 +272,11 @@ useEffect(() => {
               <Wallet />
             </span>
             <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
-              <Select
-                options={currencyOptions}
-                value={currencyOptions.find(opt => opt.value === selectedCurrency.code)}
-                onChange={opt => setSelectedCurrency(currencies.find(c => c.code === opt?.value) || currencies[0])}
-                isSearchable={false}
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    background: 'linear-gradient(90deg, #ede7ff 60%, #e0e7ff 100%)',
-                    color: 'var(--primary-purple)',
-                    border: state.isFocused ? '2px solid #a18aff' : '2px solid #cfc2fa',
-                    borderRadius: 16,
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    minHeight: 'unset',
-                    boxShadow: state.isFocused ? '0 0 0 2px #a18aff' : '0 2px 8px rgba(123, 108, 255, 0.10)',
-                    padding: '0.1rem 0.2rem',
-                    cursor: 'pointer',
-                    transition: 'border 0.18s, box-shadow 0.18s',
-                  }),
-                  singleValue: (base) => ({
-                    ...base,
-                    color: 'var(--primary-purple)',
-                    fontWeight: 700,
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    borderRadius: 16,
-                    background: '#f4f2fd',
-                    boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)',
-                    zIndex: 10,
-                    overflow: 'hidden',
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    color: state.isSelected ? '#fff' : '#471d8b',
-                    background: state.isSelected
-                      ? 'linear-gradient(90deg, #a18aff 60%, #7b6cff 100%)'
-                      : state.isFocused
-                        ? 'linear-gradient(90deg, #ede7ff 60%, #e0e7ff 100%)'
-                        : 'transparent',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    borderRadius: 16,
-                    margin: '2px 8px',
-                    transition: 'background 0.18s, transform 0.18s',
-                    transform: state.isFocused ? 'scale(1.04)' : 'scale(1)',
-                  }),
-                  dropdownIndicator: (base) => ({
-                    ...base,
-                    color: 'var(--primary-purple)',
-                  }),
-                  indicatorSeparator: () => ({ display: 'none' }),
-                  input: (base) => ({ ...base, color: 'var(--primary-purple)' }),
-                }}
-              />
             </div>
             <span className="cardTitle">Total Expenses</span>
-            <span className="cardValue">{selectedCurrency.symbol}{totalExpenses.toLocaleString()}</span>
+            <span className="cardValue">
+  {symbol}{(totalExpenses * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+</span>
           </div>
         </div>
 
@@ -378,30 +330,37 @@ useEffect(() => {
                       fontWeight: 600,
                     }}
                   >
-                    -${entry.amount}
+                    -{symbol}{(entry.amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button
-                      onClick={() => {
-                        setSelectedExpenseId(entry.id);
-                        setConfirmDeleteOpen(true);
-                      }}
-                      aria-label={`Delete expense on ${entry.date}`}
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: 'red',
-                        color: 'red',
-                        borderStyle: 'solid',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        fontSize: '1.2rem',
-                        lineHeight: 1,
-                        padding: '2%',
-                      }}
-                      title="Delete expense"
-                    >
-                      &times;
-                    </button>
+  onClick={() => {
+    setSelectedExpenseId(entry.id);
+    setConfirmDeleteOpen(true);
+  }}
+  aria-label={`Delete expense on ${entry.date}`}
+  style={{
+    backgroundColor: 'white',
+    borderColor: 'transparent',
+    color: 'red',
+    borderStyle: 'solid',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '1.2rem',
+    lineHeight: 1,
+    padding: '2%',
+    borderRadius: '50%',
+    transition: 'all 0.3s ease-in-out',
+    backdropFilter: 'blur(2px)', 
+    WebkitBackdropFilter: 'blur(4px)',
+  }}
+  
+  title="Delete expense"
+>
+  &times;
+</button>
+
                   </td>
                 </tr>
               ))}

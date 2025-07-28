@@ -23,6 +23,7 @@ import autoTable from 'jspdf-autotable';
 import '../../organisms/Modal/AddIncomeModal.css';
 import toast from 'react-hot-toast';
 import { saveAs } from 'file-saver';
+import { useCurrency } from '@/context/CurrencyContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -46,6 +47,7 @@ const Reports = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [animateExportOut, setAnimateExportOut] = useState(false);
+  const { currency, rate, symbol } = useCurrency();
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -103,7 +105,7 @@ const mockExpenses: TransactionEntry[] = mockExpensesRaw
     const combinedIncome = [...backendIncome, ...mockIncome];
     const combinedExpenses = [...backendExpenses, ...mockExpenses];
 
-    // Sort by date descending (optional)
+    // Sort by date descending
     combinedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     combinedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -120,17 +122,23 @@ const mockExpenses: TransactionEntry[] = mockExpensesRaw
     fetchData();
   }, []);
 
-  const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
-  const totalExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
-  const netBalance = totalIncome - totalExpenses;
+  const rawIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+const rawExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+const totalIncome = rawIncome * rate;
+const totalExpenses = rawExpenses * rate;
+const netBalance = totalIncome - totalExpenses;
+
+const formatCurrency = (amount: number) => `${symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const groupByMonth = (data: TransactionEntry[]) => {
-    return data.reduce<Record<string, number>>((acc, tx) => {
-      const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
-      acc[month] = (acc[month] || 0) + Number(tx.amount);
-      return acc;
-    }, {});
-  };
+  return data.reduce<Record<string, number>>((acc, tx) => {
+    const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
+    acc[month] = (acc[month] || 0) + Number(tx.amount) * rate;
+    return acc;
+  }, {});
+};
+
 
   const incomeByMonth = groupByMonth(incomeData);
   const expensesByMonth = groupByMonth(expenseData);
@@ -408,17 +416,17 @@ function exportBothCSV() {
           <div className="card">
             <span className="cardIcon"><PiggyBank /></span>
             <span className="cardTitle">Total Income</span>
-            <span className="cardValue">${totalIncome.toLocaleString()}</span>
+            <span className="cardValue">{formatCurrency(totalIncome)}</span>
           </div>
           <div className="card">
             <span className="cardIcon"><Wallet /></span>
             <span className="cardTitle">Total Expenses</span>
-            <span className="cardValue">${totalExpenses.toLocaleString()}</span>
+            <span className="cardValue">{formatCurrency(totalExpenses)}</span>
           </div>
           <div className="card">
             <span className="cardIcon"><Activity /></span>
             <span className="cardTitle">Net Balance</span>
-            <span className="cardValue">${netBalance.toLocaleString()}</span>
+            <span className="cardValue">{formatCurrency(netBalance)}</span>
           </div>
         </div>
         <div className="chartContainer">
@@ -448,14 +456,16 @@ function exportBothCSV() {
                 <tr key={idx} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.month}</td>
                   <td style={{ textAlign: 'right', padding: '10px 0', color: '#22c55e', fontWeight: 600 }}>
-                    ${entry.income.toLocaleString()}
+                    +${formatCurrency(entry.income)}
                   </td>
                   <td style={{ textAlign: 'right', padding: '10px 0', color: '#ef4444', fontWeight: 600 }}>
-                    -${entry.expenses.toLocaleString()}
+                    -${formatCurrency(entry.expenses)}
                   </td>
                   <td style={{ textAlign: 'right', padding: '10px 0', color: '#471d8b', fontWeight: 700 }}>
-                    ${entry.net.toLocaleString()}
-                  </td>
+  {entry.net >= 0
+  ? `+${formatCurrency(entry.net)}`
+  : `-${formatCurrency(Math.abs(entry.net))}`}
+</td>
                 </tr>
               ))}
             </tbody>

@@ -9,6 +9,9 @@ import Copyright from '@/components/atoms/Copyright/Copyright';
 import { useRouter } from 'next/navigation';
 import UserCard from '../../organisms/UserCard/UserCard';
 import { getData, putData } from '@/utils/api';
+import { useCurrency } from '@/context/CurrencyContext';
+import toast from 'react-hot-toast';
+
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -17,7 +20,6 @@ const ProfilePage = () => {
   const [lastLogin, setLastLogin] = useState<string>('N/A');
   const [userId, setUserId] = useState<number | null>(null);
 
-  // Edit states
   const [editUsername, setEditUsername] = useState(false);
   const [editEmail, setEditEmail] = useState(false);
   const [editPassword, setEditPassword] = useState(false);
@@ -28,8 +30,10 @@ const ProfilePage = () => {
 
   const [feedback, setFeedback] = useState('');
   const router = useRouter();
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const { currency, setCurrency } = useCurrency();
+  const currencyOptions = ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY'];
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -75,7 +79,6 @@ const ProfilePage = () => {
       const updatedUser = await putData<{ name: string }>(`/users/${userId}`, {
         name: usernameInput,
       });
-
       if (updatedUser) {
         setUser((u) => (u ? { ...u, name: updatedUser.name } : u));
         setEditUsername(false);
@@ -92,7 +95,6 @@ const ProfilePage = () => {
       const updatedUser = await putData<{ email: string }>(`/users/${userId}`, {
         email: emailInput,
       });
-
       if (updatedUser) {
         setUser((u) => (u ? { ...u, email: updatedUser.email } : u));
         setEditEmail(false);
@@ -105,14 +107,15 @@ const ProfilePage = () => {
 
   const handleSavePassword = async () => {
     if (!userId) return;
-
     if (newPassword !== confirmPassword) {
       setFeedback("Passwords don't match.");
       return;
     }
 
     try {
-      const updatedPasswordResponse = await putData(`/users/${userId}`, { password: newPassword });
+      const updatedPasswordResponse = await putData(`/users/${userId}`, {
+        password: newPassword,
+      });
 
       if (updatedPasswordResponse) {
         setNewPassword('');
@@ -128,24 +131,11 @@ const ProfilePage = () => {
   return (
     <>
       <Sidebar />
-      <div
-        className="mainContent"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          minHeight: '100vh',
-          overflowY: 'auto',
-        }}
-      >
+      <div className="mainContent" style={{ alignItems: 'center' }}>
         <h1 className="header" style={{ alignSelf: 'flex-start' }}>
           Profile
         </h1>
-        <div
-          style={{ cursor: 'pointer', marginBottom: '1.5rem' }}
-          onClick={() => router.push('/profile')}
-        >
+        <div style={{ cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => router.push('/profile')}>
           <UserCard name={user?.name || 'User'} />
         </div>
 
@@ -168,7 +158,6 @@ const ProfilePage = () => {
                 <input
                   className={styles.profileInput}
                   value={usernameInput}
-                  placeholder="Username"
                   onChange={(e) => {
                     setUsernameInput(e.target.value);
                     setEditUsername(true);
@@ -201,7 +190,6 @@ const ProfilePage = () => {
                 <input
                   className={styles.profileInput}
                   value={emailInput}
-                  placeholder="Email"
                   onChange={(e) => {
                     setEmailInput(e.target.value);
                     setEditEmail(true);
@@ -226,6 +214,27 @@ const ProfilePage = () => {
                 )}
               </div>
             </div>
+
+            {/* Currency Selector */}
+            <div className={styles.profileFieldGroup}>
+              <label className={styles.profileLabel}>Preferred Currency</label>
+              <div className={styles.profileInputRow}>
+                <select
+                  className={styles.profileInput}
+                  value={currency}
+                  onChange={(e) => {
+                    setCurrency(e.target.value);
+                    toast.success(`Currency changed to ${e.target.value}`);
+                  }}
+                >
+                  {currencyOptions.map((cur) => (
+                    <option key={cur} value={cur}>
+                      {cur}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
           {/* Security */}
@@ -238,10 +247,7 @@ const ProfilePage = () => {
             </div>
             <div className={styles.profileFieldGroup}>
               <label className={styles.profileLabel}>Password</label>
-              <div
-                className={styles.profileInputRow}
-                style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}
-              >
+              <div className={styles.profileInputRow} style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}>
                 <input
                   className={styles.profileInput}
                   type="password"
@@ -284,7 +290,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Account Details */}
+          {/* Account Info */}
           <div className={`${styles.profileSectionCard} ${styles.animatedCard}`}>
             <div className={styles.profileSectionHeader}>
               <span className={styles.profileSectionIcon}>
@@ -300,9 +306,9 @@ const ProfilePage = () => {
               <span className={styles.accountDetailLabel}>Member Since</span>
               <span className={styles.accountDetailDate}>{joinDate}</span>
             </div>
-            
           </div>
         </div>
+
         <Copyright />
       </div>
     </>
