@@ -6,7 +6,7 @@ import { PiggyBank, Wallet, Activity } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { User } from '@organisms/UserCard/IUserCard';
 import Copyright from '@/components/atoms/Copyright/Copyright';
-import axios from 'axios';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -47,80 +47,120 @@ const Reports = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [animateExportOut, setAnimateExportOut] = useState(false);
-  const { currency, rate, symbol } = useCurrency();
+  const { rate, symbol } = useCurrency();
 
   useEffect(() => {
-    const session = sessionStorage.getItem('user');
-    if (!session) {
-      console.error('No user session found.');
-      setLoading(false);
-      return;
-    }
-
-    const { id } = JSON.parse(session);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    const fetchData = async () => {
-  try {
-    const userRes = await axios.get(`${apiUrl}/users/${id}`);
-    const { name, email } = userRes.data;
-    setUser({ name, email, avatarUrl: '' });
-
-    const [incomeRes, expenseRes] = await Promise.all([
-      axios.get(`${apiUrl}/transactions/income?user_id=${id}`),
-      axios.get(`${apiUrl}/transactions/expenses?user_id=${id}`),
-    ]);
-
-    const backendIncome: TransactionEntry[] = incomeRes.data;
-    const backendExpenses: TransactionEntry[] = expenseRes.data;
-
-    // Parse mock bank data from sessionStorage
-    const mockIncomeRaw = sessionStorage.getItem('bank_income');
-
-    const mockIncome: TransactionEntry[] = mockIncomeRaw
-      ? JSON.parse(mockIncomeRaw)
-      : [];
-
-    const mockExpensesRaw = sessionStorage.getItem('bank_expense');
-
-const mockExpenses: TransactionEntry[] = mockExpensesRaw
-  ? JSON.parse(mockExpensesRaw).map((tx: any, index: number) => {
-      const parsedAmount = Number(tx.amount);
-      const parsedDate = new Date(tx.date);
-      if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
-
-      return {
-        id: tx.id ?? -(index + 1),
-        date: tx.date,
-        amount: parsedAmount,
-        description: tx.description || 'Bank Expense',
-        type: 'expense',
-        category_id: tx.category_id || 'bank',
-        origin: 'mock-bank',
-      };
-    }).filter(Boolean)
-  : [];
-
-    // Merge backend and mock data
-    const combinedIncome = [...backendIncome, ...mockIncome];
-    const combinedExpenses = [...backendExpenses, ...mockExpenses];
-
-    // Sort by date descending
-    combinedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    combinedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    setIncomeData(combinedIncome);
-    setExpenseData(combinedExpenses);
-  } catch (error) {
-    console.error('Error loading data:', error);
-  } finally {
+  const session = sessionStorage.getItem('user');
+  if (!session) {
+    console.error('No user session found.');
     setLoading(false);
+    return;
   }
-};
 
+  const { id } = JSON.parse(session);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // your GraphQL endpoint
 
-    fetchData();
-  }, []);
+  const query = `
+    query GetUserAndTransactions($id: Int!) {
+      getUser(id: $id) {
+        id
+        name
+        email
+      }
+      getTransactions(user_id: $id) {
+        id
+        date
+        amount
+        description
+        type
+        category_id
+      }
+    }
+  `;
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/graphql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables: { id } }),
+      });
+
+      const result = await response.json();
+
+      if (result.errors) {
+        console.error('GraphQL errors:', result.errors);
+        setLoading(false);
+        return;
+      }
+
+      const { getUser, getTransactions } = result.data;
+      setUser(getUser);
+
+      // Separate income and expenses from GraphQL data
+      const backendIncome = getTransactions.filter((tx: TransactionEntry) => tx.type === 'income');
+      const backendExpenses = getTransactions.filter((tx: TransactionEntry) => tx.type === 'expense');
+
+      // Parse mock bank income from sessionStorage
+      const mockIncomeRaw = sessionStorage.getItem('bank_income');
+      const mockIncome: TransactionEntry[] = mockIncomeRaw
+        ? JSON.parse(mockIncomeRaw).map((tx: any, index: number) => {
+            const parsedAmount = Number(tx.amount);
+            const parsedDate = new Date(tx.date);
+            if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
+
+            return {
+              id: tx.id ?? -(index + 1),
+              date: tx.date,
+              amount: parsedAmount,
+              description: tx.description || 'Bank Income',
+              type: 'income',
+              category_id: tx.category_id || 'bank',
+              origin: 'mock-bank',
+            };
+          }).filter(Boolean)
+        : [];
+
+      // Parse mock bank expenses from sessionStorage
+      const mockExpensesRaw = sessionStorage.getItem('bank_expense');
+      const mockExpenses: TransactionEntry[] = mockExpensesRaw
+        ? JSON.parse(mockExpensesRaw).map((tx: any, index: number) => {
+            const parsedAmount = Number(tx.amount);
+            const parsedDate = new Date(tx.date);
+            if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
+
+            return {
+              id: tx.id ?? -(index + 1),
+              date: tx.date,
+              amount: parsedAmount,
+              description: tx.description || 'Bank Expense',
+              type: 'expense',
+              category_id: tx.category_id || 'bank',
+              origin: 'mock-bank',
+            };
+          }).filter(Boolean)
+        : [];
+
+      // Combine backend and mock data
+      const combinedIncome = [...backendIncome, ...mockIncome];
+      const combinedExpenses = [...backendExpenses, ...mockExpenses];
+
+      // Sort by date descending
+      combinedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      combinedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      setIncomeData(combinedIncome);
+      setExpenseData(combinedExpenses);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const rawIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
 const rawExpenses = expenseData.reduce((sum, tx) => sum + Number(tx.amount), 0);

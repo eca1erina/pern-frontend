@@ -113,7 +113,7 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
             />
           </label>
           <label className="modal-label">
-            Amount:
+            Amount ($):
             <div className="modal-number-input-wrapper">
               <input
                 type="number"
@@ -147,16 +147,7 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
               </div>
             </div>
           </label>
-          <label className="modal-label">
-            Description:
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description (optional)"
-              className="modal-input"
-            />
-          </label>
+          
           <label className="modal-checkbox-label">
             <input
               type="checkbox"

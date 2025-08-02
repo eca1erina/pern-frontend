@@ -218,3 +218,28 @@
   -webkit-backdrop-filter: blur(8px);
 }
 
+.aiAssistantContainer {
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 8px; /* avoid scrollbar overlapping text */
+  margin-top: 1rem;
+}
+
+.aiMessageBubble {
+  background-color: #fff;
+  color: #333;
+  padding: 9px 7px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.aiAssistantContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.aiAssistantContainer::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}

@@ -22,10 +22,9 @@ import {
   Legend,
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
-import Spline from '@splinetool/react-spline';
-import Select from 'react-select';
 import { useLoader } from '@/context/LoaderContext';
-import { fetchCurrencyRate } from '@/utils/currency';
+import { useCurrency } from '@/context/CurrencyContext';
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface IncomeEntry {
@@ -57,27 +56,7 @@ const Income = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<IncomeEntry | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  
-const [currency, setCurrency] = useState<string>('USD');
-const [rate, setRate] = useState<number>(1);
-const [symbol, setSymbol] = useState<string>('$');
-
-useEffect(() => {
-  const savedCurrency = sessionStorage.getItem("currency") || "USD";
-
-  const loadCurrency = async () => {
-    const data = await fetchCurrencyRate(savedCurrency);
-    if (data) {
-      setCurrency(data.currency);
-      setRate(data.rate);
-      setSymbol(data.symbol);
-    }
-  };
-
-  loadCurrency();
-}, []);
-  
-  const [conversionRate, setConversionRate] = useState<number>(1);
+  const { rate, symbol } = useCurrency();
 
   const availableYears = Array.from(
     new Set(incomeEntries.map((entry) => new Date(entry.date).getFullYear()))
@@ -153,9 +132,12 @@ useEffect(() => {
       const formattedMock = parsedMock.map((tx: any, idx: number) => ({
         id: tx.id ?? `mock-${idx}`,
         date: tx.date,
-        source: tx.source || tx.origin || tx.description || 'Bank Income',
+        source: tx.description || tx.category_id || 'Bank Income',
         amount: Number(tx.amount),
       }));
+
+      console.log('Mock income entries:', parsedMock);
+
 
       const allIncome = [...formattedBackend, ...formattedMock].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -181,8 +163,6 @@ useEffect(() => {
     window.removeEventListener('bankDataChanged', handleBankDataChanged);
   };
 }, []);
-
-
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -290,6 +270,10 @@ useEffect(() => {
     },
   };
 
+  const incomeMilestones = [5000, 10000, 20000, 50000, 100000];
+  const yearlyIncome = filteredEntries.reduce((sum, e) => sum + e.amount, 0);
+
+
   return (
     <>
       <Sidebar />
@@ -319,10 +303,54 @@ useEffect(() => {
             </div>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">
-  {symbol}{(totalIncome * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            {symbol}{(totalIncome * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+
+          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+            <span className="cardIcon">
+              <PiggyBank />
+            </span>
+            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}></div>
+            <span className="cardTitle">Monthly Income</span>
+            <span className="cardValue">
+              {symbol}
+            {(
+              incomeEntries.filter((e) =>
+              new Date(e.date).getMonth() === new Date().getMonth() &&
+              new Date(e.date).getFullYear() === new Date().getFullYear()
+            )
+            .reduce((sum, e) => sum + e.amount, 0) * rate
+            ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+
+          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+    <span className="cardIcon">
+              <PiggyBank />
+            </span>
+
+            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}></div>
+
+    <span className="cardTitle">Top Income Source</span>
+    <span className="cardValue">
+  {
+    (() => {
+      const top = Object.entries(
+        filteredEntries.reduce((acc: Record<string, number>, e) => {
+          acc[e.source] = (acc[e.source] || 0) + e.amount;
+          return acc;
+        }, {})
+      ).sort((a, b) => b[1] - a[1])[0];
+
+      return top
+        ? `${top[0]} - ${symbol}${(top[1] * rate).toLocaleString(undefined)}`
+        : 'N/A';
+    })()
+  }
 </span>
 
-          </div>
+  </div>
 
         </div>
 
@@ -393,6 +421,47 @@ useEffect(() => {
             </tbody>
           </table>
         </div>
+
+        <div className="milestoneSection">
+  <h2>Income Milestones</h2>
+  <ul className="milestoneList">
+    {incomeMilestones.map((milestone) => {
+      const convertedMilestone = milestone * rate;
+      const convertedYearly = yearlyIncome * rate;
+
+      const achieved = convertedYearly >= convertedMilestone;
+      const progress = Math.min((convertedYearly / convertedMilestone) * 100, 100);
+
+      return (
+        <li key={milestone} className={`milestoneItem ${achieved ? 'achieved' : ''}`}>
+          <div className="milestoneHeader">
+            <span>
+              {symbol}
+              {convertedMilestone.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
+            </span>
+            {achieved ? (
+              <span className="milestoneStatus"> Achieved </span>
+            ) : (
+              <span className="milestoneStatus">{progress.toFixed(0)}%</span>
+            )}
+          </div>
+          {!achieved && (
+            <div className="milestoneProgressBar">
+              <div
+                className="milestoneProgress"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          )}
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
         <Copyright />
       </div>
 

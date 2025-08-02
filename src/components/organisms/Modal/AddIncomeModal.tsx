@@ -105,7 +105,7 @@ const AddIncomeModal: React.FC<AddIncomeModalProps> = ({ isOpen, onClose, onAddI
             />
           </label>
           <label className="modal-label">
-            Amount:
+            Amount ($):
             <div className="modal-number-input-wrapper">
               <input
                 type="number"

@@ -23,6 +23,27 @@ import Copyright from '@/components/atoms/Copyright/Copyright';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Spline from '@splinetool/react-spline';
+import { useCurrency } from '@/context/CurrencyContext';
+import { gql, useQuery } from "@apollo/client";
+
+const GET_USER_AND_TRANSACTIONS = gql`
+  query GetUserAndTransactions($id: Int!) {
+    getUser(id: $id) {
+      id
+      name
+      email
+    }
+    getTransactions(user_id: $id) {
+      id
+      date
+      amount
+      description
+      type
+      category_id
+    }
+  }
+`;
+
 
 ChartJS.register(
   CategoryScale,
@@ -50,75 +71,41 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
   const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
   const [isBankConnected, setIsBankConnected] = useState<boolean>(false);
 
   const router = useRouter();
-  const [currency, setCurrency] = useState<string>('USD');
-const [rate, setRate] = useState<number>(1);
-const [symbol, setSymbol] = useState<string>('$');
 
-const fetchCurrencyRate = async (selectedCurrency: string) => {
-  try {
-    const res = await fetch(`${apiUrl}/api/exchange-rate?currency=${selectedCurrency}`);
-    const data = await res.json();
+const { rate, symbol } = useCurrency();
 
-    if (res.ok) {
-      setCurrency(data.currency);
-      setRate(data.rate);
-      setSymbol(data.symbol);
-      sessionStorage.setItem("currency", data.currency);
-    } else {
-      console.error("Error fetching currency:", data.message);
+  const session = sessionStorage.getItem("user");
+const { id } = session ? JSON.parse(session) : { id: null };
+
+const { data, loading, error } = useQuery(GET_USER_AND_TRANSACTIONS, {
+  variables: { id: Number(id) },
+  skip: !id,
+});
+
+useEffect(() => {
+  if (data) {
+    setUser(data.getUser);
+    const backendIncome = data.getTransactions.filter((tx: { type: string; }) => tx.type === "income");
+    const backendExpense = data.getTransactions.filter((tx: { type: string; }) => tx.type === "expense");
+
+    // bank data from sessionStorage
+    const bankIncome = JSON.parse(sessionStorage.getItem("bank_income") || "[]");
+    const bankExpense = JSON.parse(sessionStorage.getItem("bank_expense") || "[]");
+
+    if (bankIncome.length > 0 || bankExpense.length > 0) {
+      setIsBankConnected(true);
     }
-  } catch (err) {
-    console.error("Failed to fetch exchange rate:", err);
+
+    setIncomeData([...backendIncome, ...bankIncome]);
+    setExpenseData([...backendExpense, ...bankExpense]);
   }
-};
+}, [data]);
 
-
-  useEffect(() => {
-    const session = sessionStorage.getItem("user");
-    if (!session) {
-      console.error("No user session found.");
-      setLoading(false);
-      return;
-    }
-
-    const { id } = JSON.parse(session);
-    const savedCurrency = sessionStorage.getItem("currency") || "USD";
-fetchCurrencyRate(savedCurrency);
-
-
-    const fetchUserData = async () => {
-      try {
-        const userRes = await getData<{ name: string; email: string }>(`/users/${id}`);
-        if (userRes) {
-          setUser({ name: userRes.name, email: userRes.email, avatarUrl: "" });
-        }
-
-        const transactionsRes = await getData<TransactionEntry[]>(`/transactions?user_id=${id}`);
-        const backendIncome = transactionsRes.filter((tx) => tx.type === "income");
-        const backendExpense = transactionsRes.filter((tx) => tx.type === "expense");
-
-        const bankIncome = JSON.parse(sessionStorage.getItem("bank_income") || "[]");
-        const bankExpense = JSON.parse(sessionStorage.getItem("bank_expense") || "[]");
-
-        if (bankIncome.length > 0 || bankExpense.length > 0) {
-          setIsBankConnected(true);
-        }
-
-        setIncomeData([...backendIncome, ...bankIncome]);
-        setExpenseData([...backendExpense, ...bankExpense]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   // Convert totals with rate
   const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);

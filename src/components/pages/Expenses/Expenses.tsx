@@ -20,11 +20,8 @@ import {
   Legend,
 } from 'chart.js';
 import { useRouter } from 'next/navigation';
-import Spline from '@splinetool/react-spline';
-import Select from 'react-select';
 import { useLoader } from '@/context/LoaderContext';
-import { fetchCurrencyRate } from '@/utils/currency';
-
+import { useCurrency } from '@/context/CurrencyContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -88,25 +85,7 @@ const Expenses = () => {
   const [showModal, setShowModal] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
-
-  const [currency, setCurrency] = useState<string>('USD');
-const [rate, setRate] = useState<number>(1);
-const [symbol, setSymbol] = useState<string>('$');
-
-useEffect(() => {
-  const savedCurrency = sessionStorage.getItem("currency") || "USD";
-
-  const loadCurrency = async () => {
-    const data = await fetchCurrencyRate(savedCurrency);
-    if (data) {
-      setCurrency(data.currency);
-      setRate(data.rate);
-      setSymbol(data.symbol);
-    }
-  };
-
-  loadCurrency();
-}, []);
+  const { rate, symbol } = useCurrency();
 
 
   const router = useRouter();
@@ -247,6 +226,22 @@ useEffect(() => {
     }
   };
 
+  const now = new Date();
+const thisMonthExpenses = recentExpenses.filter((e) => {
+  const d = new Date(e.date);
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+});
+const thisMonthTotal = thisMonthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+const categoryTotals: Record<string, number> = {};
+recentExpenses.forEach((e) => {
+  const category = e.description || e.category_id || 'Other';
+  categoryTotals[category] = (categoryTotals[category] || 0) + Number(e.amount);
+});
+
+const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+
+
   return (
     <>
       <Sidebar />
@@ -267,7 +262,7 @@ useEffect(() => {
         </h1>
 
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 32, marginBottom: 32 }}>
-          <div className="card" style={{ position: 'relative', minWidth: 420, width: 470, paddingRight: 32 }}>
+          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
             <span className="cardIcon">
               <Wallet />
             </span>
@@ -277,6 +272,35 @@ useEffect(() => {
             <span className="cardValue">
   {symbol}{(totalExpenses * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
 </span>
+          </div>
+
+          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+            <span className="cardIcon">
+              <Wallet />
+            </span>
+            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
+            </div>
+            <span className="cardTitle">Monthly Expenses</span>
+            <span className="cardValue">
+  <span className="cardValue">
+  {symbol}{(thisMonthTotal * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+</span>
+</span>
+          </div>
+
+          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+            <span className="cardIcon">
+              <Wallet />
+            </span>
+            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
+            </div>
+            <span className="cardTitle">Top Category</span>
+<span className="cardValue">
+  {topCategory
+    ? `${topCategory[0]} - ${symbol}${(topCategory[1] * rate).toLocaleString(undefined)}`
+    : 'N/A'}
+</span>
+
           </div>
         </div>
 

@@ -17,7 +17,6 @@ const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [joinDate, setJoinDate] = useState<string>('January 2024');
-  const [lastLogin, setLastLogin] = useState<string>('N/A');
   const [userId, setUserId] = useState<number | null>(null);
 
   const [editUsername, setEditUsername] = useState(false);
@@ -33,7 +32,7 @@ const ProfilePage = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const { currency, setCurrency } = useCurrency();
-  const currencyOptions = ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY'];
+  const currencyOptions = ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY', 'RON'];
 
   useEffect(() => {
     const session = sessionStorage.getItem('user');
@@ -60,7 +59,6 @@ const ProfilePage = () => {
           setUsernameInput(name || '');
           setEmailInput(email || '');
           setJoinDate(joinDate || 'January 2024');
-          setLastLogin(lastLogin || 'N/A');
         }
       } catch (error) {
         console.error(error);
@@ -306,6 +304,7 @@ const ProfilePage = () => {
               <span className={styles.accountDetailLabel}>Member Since</span>
               <span className={styles.accountDetailDate}>{joinDate}</span>
             </div>
+            
           </div>
         </div>
 
