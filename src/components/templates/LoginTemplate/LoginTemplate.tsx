@@ -20,11 +20,7 @@ export const LoginTemplate: React.FC<LoginTemplateProps> = ({ onLogin, errorMess
   return (
     <div className="login-template">
       {/* Top-left logo */}
-      <img
-        src="/logoSmall.png"
-        alt="Wise Track Logo"
-        className="login-page-logo-topleft"
-      />
+      <img src="/logoSmall.png" alt="Wise Track Logo" className="login-page-logo-topleft" />
 
       {/* Login form card */}
       <LoginCard

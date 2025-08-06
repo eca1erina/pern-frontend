@@ -24,7 +24,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Spline from '@splinetool/react-spline';
 import { useCurrency } from '@/context/CurrencyContext';
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery } from '@apollo/client';
 
 const GET_USER_AND_TRANSACTIONS = gql`
   query GetUserAndTransactions($id: Int!) {
@@ -44,7 +44,6 @@ const GET_USER_AND_TRANSACTIONS = gql`
   }
 `;
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -53,21 +52,20 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
-
 
 interface TransactionEntry {
   id: number;
   date: string;
   amount: number;
   description?: string;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
   category?: string;
   source?: string;
 }
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -77,35 +75,38 @@ const Dashboard = () => {
 
   const router = useRouter();
 
-const { rate, symbol } = useCurrency();
+  const { rate, symbol } = useCurrency();
 
-  const session = sessionStorage.getItem("user");
-const { id } = session ? JSON.parse(session) : { id: null };
+  const session = sessionStorage.getItem('user');
+  const { id } = session ? JSON.parse(session) : { id: null };
 
-const { data, loading, error } = useQuery(GET_USER_AND_TRANSACTIONS, {
-  variables: { id: Number(id) },
-  skip: !id,
-});
+  const { data, loading, error } = useQuery(GET_USER_AND_TRANSACTIONS, {
+    variables: { id: Number(id) },
+    skip: !id,
+  });
 
-useEffect(() => {
-  if (data) {
-    setUser(data.getUser);
-    const backendIncome = data.getTransactions.filter((tx: { type: string; }) => tx.type === "income");
-    const backendExpense = data.getTransactions.filter((tx: { type: string; }) => tx.type === "expense");
+  useEffect(() => {
+    if (data) {
+      setUser(data.getUser);
+      const backendIncome = data.getTransactions.filter(
+        (tx: { type: string }) => tx.type === 'income',
+      );
+      const backendExpense = data.getTransactions.filter(
+        (tx: { type: string }) => tx.type === 'expense',
+      );
 
-    // bank data from sessionStorage
-    const bankIncome = JSON.parse(sessionStorage.getItem("bank_income") || "[]");
-    const bankExpense = JSON.parse(sessionStorage.getItem("bank_expense") || "[]");
+      // bank data from sessionStorage
+      const bankIncome = JSON.parse(sessionStorage.getItem('bank_income') || '[]');
+      const bankExpense = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-    if (bankIncome.length > 0 || bankExpense.length > 0) {
-      setIsBankConnected(true);
+      if (bankIncome.length > 0 || bankExpense.length > 0) {
+        setIsBankConnected(true);
+      }
+
+      setIncomeData([...backendIncome, ...bankIncome]);
+      setExpenseData([...backendExpense, ...bankExpense]);
     }
-
-    setIncomeData([...backendIncome, ...bankIncome]);
-    setExpenseData([...backendExpense, ...bankExpense]);
-  }
-}, [data]);
-
+  }, [data]);
 
   // Convert totals with rate
   const totalIncome = incomeData.reduce((sum, tx) => sum + Number(tx.amount), 0);
@@ -116,33 +117,46 @@ useEffect(() => {
 
   const groupByMonth = (data: TransactionEntry[]) => {
     return data.reduce<Record<string, number>>((acc, tx) => {
-      const month = new Date(tx.date).toLocaleString("default", { month: "short" });
+      const month = new Date(tx.date).toLocaleString('default', { month: 'short' });
       acc[month] = (acc[month] || 0) + Number(tx.amount);
       return acc;
     }, {});
   };
 
   const incomeByMonth = groupByMonth(incomeData);
-  const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthOrder = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   const months = monthOrder.filter((month) => month in incomeByMonth);
 
   const lineData = {
     labels: months,
     datasets: [
       {
-        label: "Income",
+        label: 'Income',
         data: months.map((m) => (incomeByMonth[m] || 0) * rate),
-        borderColor: "#6c63ff",
-        backgroundColor: "rgba(108,99,255,0.10)",
+        borderColor: '#6c63ff',
+        backgroundColor: 'rgba(108,99,255,0.10)',
         tension: 0.45,
         fill: true,
         pointRadius: 3,
         pointHoverRadius: 6,
-        pointBackgroundColor: "#6c63ff",
-        pointBorderColor: "#fff",
+        pointBackgroundColor: '#6c63ff',
+        pointBorderColor: '#fff',
         borderWidth: 3,
         pointBorderWidth: 2,
-        pointStyle: "circle",
+        pointStyle: 'circle',
       },
     ],
   };
@@ -155,8 +169,8 @@ useEffect(() => {
         rawCategory && rawCategory.length > 0
           ? rawCategory
           : rawDescription && rawDescription.length > 0
-          ? rawDescription
-          : "Other";
+            ? rawDescription
+            : 'Other';
       acc[category] = (acc[category] || 0) + Number(tx.amount);
       return acc;
     }, {});
@@ -169,9 +183,9 @@ useEffect(() => {
     labels: sortedCategories,
     datasets: [
       {
-        label: "Expenses",
+        label: 'Expenses',
         data: sortedCategories.map((c) => (expensesByCategory[c] || 0) * rate),
-        backgroundColor: "#a5b4fc",
+        backgroundColor: '#a5b4fc',
         borderRadius: 8,
         maxBarThickness: 32,
       },
@@ -188,10 +202,10 @@ useEffect(() => {
       legend: { display: false },
       title: { display: false },
       tooltip: {
-        backgroundColor: "#fff",
-        titleColor: "#3b277a",
-        bodyColor: "#3b277a",
-        borderColor: "#ede9fe",
+        backgroundColor: '#fff',
+        titleColor: '#3b277a',
+        bodyColor: '#3b277a',
+        borderColor: '#ede9fe',
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,
@@ -200,8 +214,8 @@ useEffect(() => {
           label: function (context: any) {
             // Add currency symbol with tooltip amounts
             return `${symbol}${context.parsed.y.toLocaleString(undefined, {
-  minimumFractionDigits: 2,
-})}`;
+              minimumFractionDigits: 2,
+            })}`;
           },
         },
       },
@@ -210,20 +224,20 @@ useEffect(() => {
       x: {
         grid: { display: false },
         ticks: {
-          color: "#a3a3a3",
-          font: { size: 14, weight: "bold" as const },
+          color: '#a3a3a3',
+          font: { size: 14, weight: 'bold' as const },
           padding: 8,
         },
       },
       y: {
-        grid: { color: "#ede9fe", lineWidth: 1 },
+        grid: { color: '#ede9fe', lineWidth: 1 },
         border: { display: false },
         ticks: {
-          color: "#a3a3a3",
+          color: '#a3a3a3',
           font: { size: 13 },
           padding: 8,
           callback: function (tickValue: string | number) {
-            if (typeof tickValue === "number" && tickValue >= 1000) return tickValue / 1000 + "k";
+            if (typeof tickValue === 'number' && tickValue >= 1000) return tickValue / 1000 + 'k';
             return tickValue;
           },
         },
@@ -232,9 +246,9 @@ useEffect(() => {
   };
 
   const handleConnectBank = async () => {
-    const session = sessionStorage.getItem("user");
+    const session = sessionStorage.getItem('user');
     if (!session) {
-      alert("Please login to connect your bank.");
+      alert('Please login to connect your bank.');
       return;
     }
 
@@ -242,46 +256,46 @@ useEffect(() => {
 
     try {
       const res = await fetch(`${apiUrl}/api/bank/mockbank?user_id=${userId}`);
-      if (!res.ok) throw new Error("Failed to fetch bank data");
+      if (!res.ok) throw new Error('Failed to fetch bank data');
 
       const { transactions } = await res.json();
 
       const income = transactions
-        .filter((tx: TransactionEntry) => tx.type === "income")
+        .filter((tx: TransactionEntry) => tx.type === 'income')
         .map((tx: TransactionEntry) => ({
           ...tx,
-          source: "mock-bank",
+          source: 'mock-bank',
         }));
 
       const expense = transactions
-        .filter((tx: TransactionEntry) => tx.type === "expense")
-        .map((tx: any) => ({ ...tx, source: "mock-bank" }));
+        .filter((tx: TransactionEntry) => tx.type === 'expense')
+        .map((tx: any) => ({ ...tx, source: 'mock-bank' }));
 
-      sessionStorage.setItem("bank_income", JSON.stringify(income));
-      sessionStorage.setItem("bank_expense", JSON.stringify(expense));
+      sessionStorage.setItem('bank_income', JSON.stringify(income));
+      sessionStorage.setItem('bank_expense', JSON.stringify(expense));
 
       setIsBankConnected(true);
 
       setIncomeData((prev) => [...prev, ...income]);
       setExpenseData((prev) => [...prev, ...expense]);
-      window.dispatchEvent(new CustomEvent("bankDataChanged"));
-      toast("Bank account connected and transactions loaded!");
+      window.dispatchEvent(new CustomEvent('bankDataChanged'));
+      toast('Bank account connected and transactions loaded!');
     } catch (err) {
       console.error(err);
-      toast("Failed to connect bank account.");
+      toast('Failed to connect bank account.');
     }
   };
 
   const handleDisconnectBank = () => {
-    sessionStorage.removeItem("bank_income");
-    sessionStorage.removeItem("bank_expense");
+    sessionStorage.removeItem('bank_income');
+    sessionStorage.removeItem('bank_expense');
 
-    setIncomeData((prev) => prev.filter((tx) => tx.source !== "mock-bank"));
-    setExpenseData((prev) => prev.filter((tx) => tx.source !== "mock-bank"));
+    setIncomeData((prev) => prev.filter((tx) => tx.source !== 'mock-bank'));
+    setExpenseData((prev) => prev.filter((tx) => tx.source !== 'mock-bank'));
 
     setIsBankConnected(false);
 
-    toast("Bank account disconnected and transactions removed.");
+    toast('Bank account disconnected and transactions removed.');
   };
 
   if (loading) {
@@ -291,8 +305,8 @@ useEffect(() => {
   return (
     <>
       <Sidebar />
-      <div style={{ cursor: "pointer" }} onClick={() => router.push("/profile")}>
-        <UserCard name={user?.name || "User"} />
+      <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
+        <UserCard name={user?.name || 'User'} />
       </div>
       <div className="mainContent">
         <h1 className="header">Dashboard</h1>
@@ -304,7 +318,8 @@ useEffect(() => {
             </span>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">
-              {symbol}{convertedIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {symbol}
+              {convertedIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
           <div className="card">
@@ -313,7 +328,8 @@ useEffect(() => {
             </span>
             <span className="cardTitle">Total Expenses</span>
             <span className="cardValue">
-              {symbol}{convertedExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {symbol}
+              {convertedExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
           <div
@@ -322,22 +338,22 @@ useEffect(() => {
               width: 410,
               height: 220,
               borderRadius: 24,
-              overflow: "hidden",
-              background: "transparent",
-              boxShadow: "0 2px 8px rgba(123, 108, 255, 0.10)",
+              overflow: 'hidden',
+              background: 'transparent',
+              boxShadow: '0 2px 8px rgba(123, 108, 255, 0.10)',
             }}
           >
             {!isBankConnected ? (
               <button
                 onClick={handleConnectBank}
                 style={{
-                  padding: "10px 16px",
-                  background: "#6c63ff",
-                  width: "100%",
-                  color: "#fff",
-                  borderRadius: "5px",
-                  border: "none",
-                  cursor: "pointer",
+                  padding: '10px 16px',
+                  background: '#6c63ff',
+                  width: '100%',
+                  color: '#fff',
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
                 }}
               >
                 Connect Bank Account
@@ -346,13 +362,13 @@ useEffect(() => {
               <button
                 onClick={handleDisconnectBank}
                 style={{
-                  padding: "10px 16px",
-                  background: "#ef4444",
-                  color: "#fff",
-                  width: "100%",
-                  borderRadius: "5px",
-                  border: "none",
-                  cursor: "pointer",
+                  padding: '10px 16px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  width: '100%',
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
                 }}
               >
                 Disconnect Bank Account
@@ -366,7 +382,7 @@ useEffect(() => {
           <div className="chartHeader">
             <h2>Total Income</h2>
           </div>
-          <div style={{ width: "100%", height: 340 }}>
+          <div style={{ width: '100%', height: 340 }}>
             <Line data={lineData} options={chartOptions} />
           </div>
         </div>
@@ -375,7 +391,7 @@ useEffect(() => {
           <div className="chartHeader">
             <h2>Recent Expenses</h2>
           </div>
-          <div style={{ width: "100%", height: 220, margin: "0 auto" }}>
+          <div style={{ width: '100%', height: 220, margin: '0 auto' }}>
             <Bar data={barData} options={chartOptions} />
           </div>
         </div>

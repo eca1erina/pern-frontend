@@ -4,11 +4,11 @@ import SignUpPage from '@pages/SignupPage/SignupPage';
 
 export default function Profile() {
   return (
-    <div >
-      <main >
+    <div>
+      <main>
         <SignUpPage />
       </main>
-      <footer ></footer>
+      <footer></footer>
     </div>
   );
 }

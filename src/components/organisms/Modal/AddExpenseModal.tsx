@@ -6,7 +6,13 @@ import './AddIncomeModal.css';
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onAddExpense: (expense: { date: string; category: string; amount: number; description: string; is_recurring: boolean }) => void;
+  onAddExpense: (expense: {
+    date: string;
+    category: string;
+    amount: number;
+    description: string;
+    is_recurring: boolean;
+  }) => void;
 };
 
 const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => {
@@ -31,6 +37,10 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
 
   if (!show) return null;
 
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !category || amount === '') {
@@ -39,7 +49,7 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
     }
     onAddExpense({
       date: date.toISOString().split('T')[0],
-      category,
+      category: capitalizeFirstLetter(category.trim()),
       amount: Number(amount),
       description,
       is_recurring: isRecurring,
@@ -61,7 +71,10 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
   };
 
   return (
-    <div className={`modal-overlay${animateOut ? ' modal-overlay-exit' : ' modal-overlay-enter'}`} onClick={handleClose}>
+    <div
+      className={`modal-overlay${animateOut ? ' modal-overlay-exit' : ' modal-overlay-enter'}`}
+      onClick={handleClose}
+    >
       <div
         className={`modal-card${animateOut ? ' modal-card-exit' : ' modal-card-enter'}`}
         onClick={(e) => e.stopPropagation()}
@@ -72,8 +85,19 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
           type="button"
           onClick={handleClose}
         >
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 6L16 16M16 6L6 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 22 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 6L16 16M16 6L6 16"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
         <h2 className="modal-title">Add Expense</h2>
@@ -92,11 +116,25 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
                 showPopperArrow={false}
               />
               <span className="modal-datepicker-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="5" width="14" height="12" rx="3" stroke="#a18aff" strokeWidth="1.5"/>
-                  <path d="M7 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M13 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round"/>
-                  <rect x="7" y="9" width="2" height="2" rx="1" fill="#a18aff"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="3"
+                    y="5"
+                    width="14"
+                    height="12"
+                    rx="3"
+                    stroke="#a18aff"
+                    strokeWidth="1.5"
+                  />
+                  <path d="M7 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M13 3V6" stroke="#a18aff" strokeWidth="1.5" strokeLinecap="round" />
+                  <rect x="7" y="9" width="2" height="2" rx="1" fill="#a18aff" />
                 </svg>
               </span>
             </div>
@@ -130,24 +168,42 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
                   type="button"
                   className="modal-number-btn modal-number-btn-up"
                   tabIndex={-1}
-                  onClick={() => setAmount((prev) => prev === '' ? 1 : Number(prev) + 1)}
+                  onClick={() => setAmount((prev) => (prev === '' ? 1 : Number(prev) + 1))}
                   aria-label="Increment"
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 9l4-4 4 4" stroke="#a18aff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 9l4-4 4 4"
+                      stroke="#a18aff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </button>
                 <button
                   type="button"
                   className="modal-number-btn modal-number-btn-down"
                   tabIndex={-1}
-                  onClick={() => setAmount((prev) => prev === '' ? 0 : Math.max(0, Number(prev) - 1))}
+                  onClick={() =>
+                    setAmount((prev) => (prev === '' ? 0 : Math.max(0, Number(prev) - 1)))
+                  }
                   aria-label="Decrement"
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 7l4 4 4-4" stroke="#a18aff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 7l4 4 4-4"
+                      stroke="#a18aff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>
           </label>
-          
+
           <label className="modal-checkbox-label">
             <input
               type="checkbox"
@@ -161,8 +217,20 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
           <button type="submit" className="modal-submit-btn">
             <span className="modal-btn-text">Add Expense</span>
             <span className="modal-btn-icon">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 10.5L9 14.5L15 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 10.5L9 14.5L15 7.5"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </span>
           </button>

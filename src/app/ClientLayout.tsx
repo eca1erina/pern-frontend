@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
@@ -16,11 +16,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="app-container">
-      <button
-        className="hamburger"
-        aria-label="Open sidebar"
-        onClick={() => setSidebarOpen(true)}
-      >
+      <button className="hamburger" aria-label="Open sidebar" onClick={() => setSidebarOpen(true)}>
         <span />
       </button>
       <UserCard name="Jasmine" />
@@ -36,4 +32,4 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <main className="mainContent">{children}</main>
     </div>
   );
-} 
+}

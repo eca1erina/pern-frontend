@@ -18,7 +18,13 @@
   animation: logo-float-topleft 3.5s ease-in-out infinite alternate;
 }
 @keyframes logo-float-topleft {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.07); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.07);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }

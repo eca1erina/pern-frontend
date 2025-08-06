@@ -56,7 +56,12 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           onClick={handleClose}
         >
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M6 6L16 16M16 6L6 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+            <path
+              d="M6 6L16 16M16 6L6 16"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
 

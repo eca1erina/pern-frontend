@@ -22,4 +22,4 @@ export const LoaderProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </LoaderContext.Provider>
   );
-}; 
+};

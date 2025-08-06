@@ -29,14 +29,14 @@ export default function SignupPage() {
       sessionStorage.setItem(
         'user',
         JSON.stringify({
-          id: data.user.id, 
+          id: data.user.id,
           name: data.user.name,
           email: data.user.email,
           isLoggedIn: true,
           loginTime: new Date().toString(),
         }),
       );
-      
+
       // Save token for authentication
       sessionStorage.setItem('token', data.token);
 

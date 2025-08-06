@@ -4,8 +4,10 @@
   margin: auto;
   padding: 2.5rem;
   border-radius: 28px;
-  background: rgba(255,255,255,0.38);
-  box-shadow: 0 8px 32px 0 rgba(123, 108, 255, 0.18), 0 2px 8px 0 rgba(108, 71, 255, 0.10);
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 8px 32px 0 rgba(123, 108, 255, 0.18),
+    0 2px 8px 0 rgba(108, 71, 255, 0.1);
   backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
@@ -106,9 +108,15 @@
   animation: logo-float 3.5s ease-in-out infinite alternate;
 }
 @keyframes logo-float {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.07); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.07);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 .login-card::after {
@@ -126,7 +134,13 @@
   pointer-events: none;
 }
 @keyframes blob-move {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(30px) scale(1.12) rotate(8deg); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(30px) scale(1.12) rotate(8deg);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }

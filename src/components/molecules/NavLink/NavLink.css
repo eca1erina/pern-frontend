@@ -9,7 +9,10 @@
   font-weight: 500;
   color: var(--text-gray, #6b7280);
   background: none;
-  transition: background 0.25s cubic-bezier(0.4,0,0.2,1), color 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+  transition:
+    background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
 }
 
 .navLink:hover,
@@ -39,4 +42,4 @@
 
 .navLink.active .lucide {
   color: #7b6cff;
-} 
+}

@@ -1,7 +1,7 @@
 :root {
   --background: #f8f6ff;
   --foreground: #3b277a;
-  --scrollbar:  #571ac7;
+  --scrollbar: #571ac7;
   --primary-purple: #7b6cff;
   --soft-purple: #ede9fe;
   --light-bg: #f8f6ff;
@@ -63,7 +63,9 @@ a {
 .sidebar-outer-container {
   margin: 2.5vh 0 2.5vh 2vw;
   border-radius: 22px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.1),
+    0 1.5px 4px rgba(0, 0, 0, 0.04);
   background: transparent;
   display: flex;
   align-items: stretch;
@@ -107,19 +109,23 @@ a {
 
 ::-webkit-scrollbar-button:vertical:decrement {
   background: var(--primary-purple);
-  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="4,2 7,6 1,6" fill="white"/></svg>') center/contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="4,2 7,6 1,6" fill="white"/></svg>')
+    center/contain no-repeat;
 }
 ::-webkit-scrollbar-button:vertical:increment {
   background: var(--primary-purple);
-  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="1,2 7,2 4,6" fill="white"/></svg>') center/contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="1,2 7,2 4,6" fill="white"/></svg>')
+    center/contain no-repeat;
 }
 ::-webkit-scrollbar-button:horizontal:decrement {
   background: var(--primary-purple);
-  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,4 6,1 6,7" fill="white"/></svg>') center/contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,4 6,1 6,7" fill="white"/></svg>')
+    center/contain no-repeat;
 }
 ::-webkit-scrollbar-button:horizontal:increment {
   background: var(--primary-purple);
-  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,1 2,7 6,4" fill="white"/></svg>') center/contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg"><polygon points="2,1 2,7 6,4" fill="white"/></svg>')
+    center/contain no-repeat;
 }
 
 .profile-bg-container {

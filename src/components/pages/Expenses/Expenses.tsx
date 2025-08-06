@@ -87,102 +87,99 @@ const Expenses = () => {
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
   const { rate, symbol } = useCurrency();
 
-
   const router = useRouter();
 
   const fetchUserData = async () => {
-  const session = sessionStorage.getItem('user');
-  if (!session) {
-    console.error('No user session found.');
-    setLoading(false);
-    return;
-  }
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      console.error('No user session found.');
+      setLoading(false);
+      return;
+    }
 
-  const { id } = JSON.parse(session);
+    const { id } = JSON.parse(session);
 
-  try {
-    const userRes = await getData(`/users/${id}`);
-    const { name, email } = userRes;
-    setUser({ name, email, avatarUrl: '' });
+    try {
+      const userRes = await getData(`/users/${id}`);
+      const { name, email } = userRes;
+      setUser({ name, email, avatarUrl: '' });
 
-    const backendExpenses = await getData(`/transactions/expenses?user_id=${id}`);
-    const mockExpenses = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
+      const backendExpenses = await getData(`/transactions/expenses?user_id=${id}`);
+      const mockExpenses = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-    const allExpenses = [
-      ...backendExpenses,
-      ...mockExpenses.map((tx: any) => ({
-  ...tx,
-  date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
-  source: 'mock-bank',
-})),
+      const allExpenses = [
+        ...backendExpenses,
+        ...mockExpenses.map((tx: any) => ({
+          ...tx,
+          date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
+          source: 'mock-bank',
+        })),
+      ];
 
-    ];
+      const now = new Date();
+      // Set Total Expenses (no filtering)
+      const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      setTotalExpenses(totalSum);
 
-    const now = new Date();
-    // Set Total Expenses (no filtering)
-const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
-setTotalExpenses(totalSum);
+      // Set Recent Expenses (no filtering either)
+      setRecentExpenses(allExpenses);
 
-// Set Recent Expenses (no filtering either)
-setRecentExpenses(allExpenses);
+      // Apply time filtering only for chart data
+      let chartExpenses = [...allExpenses];
+      if (filterRange === '1m') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1)),
+        );
+      } else if (filterRange === '6m') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6)),
+        );
+      } else if (filterRange === '1y') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1)),
+        );
+      }
 
-// Apply time filtering only for chart data
-let chartExpenses = [...allExpenses];
-if (filterRange === '1m') {
-  chartExpenses = chartExpenses.filter(
-    (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1))
-  );
-} else if (filterRange === '6m') {
-  chartExpenses = chartExpenses.filter(
-    (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6))
-  );
-} else if (filterRange === '1y') {
-  chartExpenses = chartExpenses.filter(
-    (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1))
-  );
-}
+      // Generate chart data from filtered list
+      const categoryMap: Record<string, number> = {};
+      chartExpenses.forEach((expense) => {
+        const category = expense.description || expense.category_id || 'Other';
+        categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
+      });
 
-// Generate chart data from filtered list
-const categoryMap: Record<string, number> = {};
-chartExpenses.forEach((expense) => {
-  const category = expense.description || expense.category_id || 'Other';
-  categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
-});
-
-const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
-setCategoryChartData({
-  labels: sortedCategories,
-  datasets: [
-    {
-      label: 'Expenses',
-      data: sortedCategories.map((cat) => categoryMap[cat] * rate),
-      backgroundColor: '#a5b4fc',
-      borderRadius: 8,
-      maxBarThickness: 32,
-    },
-  ],
-});
-
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-useEffect(() => {
-  fetchUserData();
-
-  const handleBankDataChange = () => {
-    fetchUserData(); // Re-fetch when bank data changes
+      const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
+      setCategoryChartData({
+        labels: sortedCategories,
+        datasets: [
+          {
+            label: 'Expenses',
+            data: sortedCategories.map((cat) => categoryMap[cat] * rate),
+            backgroundColor: '#a5b4fc',
+            borderRadius: 8,
+            maxBarThickness: 32,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  window.addEventListener('bankDataChanged', handleBankDataChange);
+  useEffect(() => {
+    fetchUserData();
 
-  return () => {
-    window.removeEventListener('bankDataChanged', handleBankDataChange);
-  };
-}, [filterRange]);
+    const handleBankDataChange = () => {
+      fetchUserData(); // Re-fetch when bank data changes
+    };
+
+    window.addEventListener('bankDataChanged', handleBankDataChange);
+
+    return () => {
+      window.removeEventListener('bankDataChanged', handleBankDataChange);
+    };
+  }, [filterRange]);
 
   const handleAddExpense = async (expense: {
     date: string;
@@ -227,20 +224,19 @@ useEffect(() => {
   };
 
   const now = new Date();
-const thisMonthExpenses = recentExpenses.filter((e) => {
-  const d = new Date(e.date);
-  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-});
-const thisMonthTotal = thisMonthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const thisMonthExpenses = recentExpenses.filter((e) => {
+    const d = new Date(e.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const thisMonthTotal = thisMonthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
-const categoryTotals: Record<string, number> = {};
-recentExpenses.forEach((e) => {
-  const category = e.description || e.category_id || 'Other';
-  categoryTotals[category] = (categoryTotals[category] || 0) + Number(e.amount);
-});
+  const categoryTotals: Record<string, number> = {};
+  recentExpenses.forEach((e) => {
+    const category = e.description || e.category_id || 'Other';
+    categoryTotals[category] = (categoryTotals[category] || 0) + Number(e.amount);
+  });
 
-const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
-
+  const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
 
   return (
     <>
@@ -262,45 +258,58 @@ const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0
         </h1>
 
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 32, marginBottom: 32 }}>
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
             <span className="cardIcon">
               <Wallet />
             </span>
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
-            </div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
             <span className="cardTitle">Total Expenses</span>
             <span className="cardValue">
-  {symbol}{(totalExpenses * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-</span>
+              {symbol}
+              {(totalExpenses * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
           </div>
 
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
             <span className="cardIcon">
               <Wallet />
             </span>
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
-            </div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
             <span className="cardTitle">Monthly Expenses</span>
             <span className="cardValue">
-  <span className="cardValue">
-  {symbol}{(thisMonthTotal * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-</span>
-</span>
+              <span className="cardValue">
+                {symbol}
+                {(thisMonthTotal * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+            </span>
           </div>
 
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
             <span className="cardIcon">
               <Wallet />
             </span>
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
-            </div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
             <span className="cardTitle">Top Category</span>
-<span className="cardValue">
-  {topCategory
-    ? `${topCategory[0]} - ${symbol}${(topCategory[1] * rate).toLocaleString(undefined)}`
-    : 'N/A'}
-</span>
-
+            <span className="cardValue">
+              {topCategory
+                ? `${topCategory[0]} - ${symbol}${(topCategory[1] * rate).toLocaleString(undefined)}`
+                : 'N/A'}
+            </span>
           </div>
         </div>
 
@@ -354,37 +363,35 @@ const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0
                       fontWeight: 600,
                     }}
                   >
-                    -{symbol}{(entry.amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-
+                    -{symbol}
+                    {(entry.amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button
-  onClick={() => {
-    setSelectedExpenseId(entry.id);
-    setConfirmDeleteOpen(true);
-  }}
-  aria-label={`Delete expense on ${entry.date}`}
-  style={{
-    backgroundColor: 'white',
-    borderColor: 'transparent',
-    color: 'red',
-    borderStyle: 'solid',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '1.2rem',
-    lineHeight: 1,
-    padding: '2%',
-    borderRadius: '50%',
-    transition: 'all 0.3s ease-in-out',
-    backdropFilter: 'blur(2px)', 
-    WebkitBackdropFilter: 'blur(4px)',
-  }}
-  
-  title="Delete expense"
->
-  &times;
-</button>
-
+                      onClick={() => {
+                        setSelectedExpenseId(entry.id);
+                        setConfirmDeleteOpen(true);
+                      }}
+                      aria-label={`Delete expense on ${entry.date}`}
+                      style={{
+                        backgroundColor: 'white',
+                        borderColor: 'transparent',
+                        color: 'red',
+                        borderStyle: 'solid',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '1.2rem',
+                        lineHeight: 1,
+                        padding: '2%',
+                        borderRadius: '50%',
+                        transition: 'all 0.3s ease-in-out',
+                        backdropFilter: 'blur(2px)',
+                        WebkitBackdropFilter: 'blur(4px)',
+                      }}
+                      title="Delete expense"
+                    >
+                      &times;
+                    </button>
                   </td>
                 </tr>
               ))}

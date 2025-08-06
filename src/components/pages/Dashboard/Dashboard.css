@@ -40,14 +40,18 @@
   align-items: flex-start;
   position: relative;
   overflow: hidden;
-  animation: card-fade-in 0.7s cubic-bezier(0.4,0,0.2,1);
-  transition: transform 0.18s, box-shadow 0.18s;
+  animation: card-fade-in 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
   font-size: 0.95rem;
 }
 
 .card:hover {
   transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 16px 48px rgba(108, 99, 255, 0.16), 0 4px 16px rgba(80, 85, 155, 0.12);
+  box-shadow:
+    0 16px 48px rgba(108, 99, 255, 0.16),
+    0 4px 16px rgba(80, 85, 155, 0.12);
 }
 
 .cardIcon {
@@ -63,7 +67,8 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
 }
 
-.cardTitle, .totalIncomeLabel {
+.cardTitle,
+.totalIncomeLabel {
   font-size: 1.45rem;
   font-weight: 600;
   color: var(--header-purple);
@@ -88,31 +93,48 @@
 .cardProgressBar {
   height: 100%;
   background: linear-gradient(90deg, var(--primary-purple) 70%, var(--accent-blue) 100%);
-  width: 60%; 
+  width: 60%;
   border-radius: 3px;
   transition: width 0.4s;
 }
 
 @keyframes card-fade-in {
-  from { opacity: 0; transform: translateY(30px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes icon-pop {
-  0% { transform: scale(0.7); opacity: 0; }
-  60% { transform: scale(1.18); opacity: 1; }
-  80% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.chartContainer, .tableContainer {
+.chartContainer,
+.tableContainer {
   color: var(--header-purple);
   background: linear-gradient(120deg, #fff 90%, #ede7ff 100%);
   border-radius: 26px;
   box-shadow: var(--shadow-purple);
   padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
-  animation: card-fade-in 0.7s cubic-bezier(0.4,0,0.2,1);
+  animation: card-fade-in 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chartHeader {
@@ -127,7 +149,8 @@
   gap: 0.7rem;
 }
 
-.chartPlaceholder, .tablePlaceholder {
+.chartPlaceholder,
+.tablePlaceholder {
   color: #555;
   text-align: center;
   padding: 2.5rem 0;
@@ -154,7 +177,10 @@
   background: linear-gradient(90deg, var(--primary-purple) 70%, var(--accent-blue) 100%);
   border-radius: 20px;
   z-index: 0;
-  transition: left 0.35s cubic-bezier(0.4,0,0.2,1), width 0.35s cubic-bezier(0.4,0,0.2,1), background 0.2s;
+  transition:
+    left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.2s;
   opacity: 0.13;
 }
 
@@ -169,13 +195,14 @@
   cursor: pointer;
   position: relative;
   z-index: 1;
-  transition: 
-    color 0.22s cubic-bezier(0.4,0,0.2,1),
-    background 0.22s cubic-bezier(0.4,0,0.2,1),
-    transform 0.22s cubic-bezier(0.4,0,0.2,1);
+  transition:
+    color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.chartFilter:hover, .chartFilter:focus {
+.chartFilter:hover,
+.chartFilter:focus {
   background: #ede9fe;
   color: var(--primary-purple);
   transform: scale(1.04);
@@ -185,24 +212,27 @@
   color: #fff;
   font-weight: 700;
   z-index: 1;
-  text-shadow: 0 1px 6px rgba(123, 108, 255, 0.10);
+  text-shadow: 0 1px 6px rgba(123, 108, 255, 0.1);
   background: linear-gradient(90deg, #a18aff 60%, #7b6cff 100%);
-  box-shadow: 0 2px 8px rgba(123, 108, 255, 0.10);
+  box-shadow: 0 2px 8px rgba(123, 108, 255, 0.1);
 }
 
 .btn {
-  transition: 
-    background 0.18s cubic-bezier(0.4,0,0.2,1),
-    color 0.18s cubic-bezier(0.4,0,0.2,1),
-    border 0.18s cubic-bezier(0.4,0,0.2,1),
-    font-weight 0.18s cubic-bezier(0.4,0,0.2,1),
-    transform 0.18s cubic-bezier(0.4,0,0.2,1);
+  transition:
+    background 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+    border 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+    font-weight 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(90deg, var(--primary-purple) 70%, var(--accent-blue) 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(123, 108, 255, 0.08);
 }
 
-.btn:hover, .btn:focus, .btn.active, .btn-active {
+.btn:hover,
+.btn:focus,
+.btn.active,
+.btn-active {
   transform: scale(1.06);
   background: linear-gradient(90deg, var(--accent-blue) 70%, var(--primary-purple) 100%);
 }
@@ -234,8 +264,11 @@
   color: var(--header-purple);
 }
 
-.card:hover, .chartFilter.active {
-  box-shadow: 0 8px 32px rgba(123, 108, 255, 0.18), 0 4px 16px rgba(80, 85, 155, 0.12);
+.card:hover,
+.chartFilter.active {
+  box-shadow:
+    0 8px 32px rgba(123, 108, 255, 0.18),
+    0 4px 16px rgba(80, 85, 155, 0.12);
 }
 
 .cardAddBtn {
@@ -248,16 +281,21 @@
   border-radius: 50%;
   background: linear-gradient(135deg, #a18aff 0%, #7b6cff 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.10);
+  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    transform 0.18s,
+    box-shadow 0.18s;
   z-index: 2;
 }
-.cardAddBtn:hover, .cardAddBtn:focus {
+.cardAddBtn:hover,
+.cardAddBtn:focus {
   background: linear-gradient(135deg, #bca7f7 0%, #8f7cfb 60%, #6c63ff 100%);
   color: #fff;
   transform: scale(1.12);
@@ -276,20 +314,21 @@
 .add-expand-btn {
   width: 36px;
   background: linear-gradient(135deg, #a18aff 0%, #7b6cff 100%);
-  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: visible;
   display: grid;
   grid-template-columns: 36px auto;
   align-items: center;
   border: none;
   border-radius: 50px;
-  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.10);
+  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.1);
   cursor: pointer;
   position: static;
   padding: 0;
 }
 
-.add-expand-btn:hover, .add-expand-btn:focus {
+.add-expand-btn:hover,
+.add-expand-btn:focus {
   width: 150px;
   border-radius: 24px;
 }
@@ -305,7 +344,9 @@
 .add-expand-btn .add-btn-text {
   max-width: 0;
   opacity: 0;
-  transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  transition:
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s;
   overflow: hidden;
   margin-left: 0.56rem;
   padding-right: 0.4rem;
@@ -313,7 +354,8 @@
   display: inline-block;
   flex-shrink: 0;
 }
-.add-expand-btn:hover .add-btn-text, .add-expand-btn:focus .add-btn-text {
+.add-expand-btn:hover .add-btn-text,
+.add-expand-btn:focus .add-btn-text {
   max-width: 150px;
   opacity: 1;
 }
@@ -330,7 +372,10 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    border 0.18s;
   box-shadow: none;
   outline: none;
   min-width: 120px;
@@ -339,7 +384,8 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-.export-btn-slim:hover:not(:disabled), .export-btn-slim:focus:not(:disabled) {
+.export-btn-slim:hover:not(:disabled),
+.export-btn-slim:focus:not(:disabled) {
   background: #ede7ff;
   color: #6c63ff;
   border-color: #cfc1ff;
@@ -377,7 +423,8 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  .chartContainer, .tableContainer {
+  .chartContainer,
+  .tableContainer {
     padding: 1.2rem 0.5rem;
   }
 }
@@ -393,12 +440,12 @@
     padding: 1rem 0.5rem;
     font-size: 0.92rem;
   }
-  .chartFilter, .btn {
+  .chartFilter,
+  .btn {
     font-size: 0.95rem;
     padding: 0.4rem 0.8rem;
   }
 }
-
 
 @media (max-width: 900px) {
   .profile-state {

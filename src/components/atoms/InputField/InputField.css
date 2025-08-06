@@ -21,7 +21,7 @@
   color: #2d254d;
   font-size: 1.05rem;
   transition: all 0.2s ease;
-  box-shadow: 0 0 8px 0 rgba(123,108,255,0.06);
+  box-shadow: 0 0 8px 0 rgba(123, 108, 255, 0.06);
 }
 
 .input-element:focus {

@@ -9,22 +9,28 @@
   color: #fff;
   cursor: pointer;
   box-shadow: 0 0 12px 2px #7b6cff;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
-.btn:hover, .btn:focus {
+.btn:hover,
+.btn:focus {
   background: linear-gradient(90deg, #a99cf7 60%, #7b6cff 100%);
   color: #fff;
   box-shadow: 0 0 24px 4px #a99cf7;
   transform: scale(1.04);
 }
 
-.btn-active, .btn.active {
+.btn-active,
+.btn.active {
   background: #6c63ff;
   color: #fff;
   border: 1.5px solid #6c63ff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.10);
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.1);
   transform: scale(1.06);
 }
 
@@ -35,7 +41,8 @@
   box-shadow: 0 0 16px 2px #7b6cff;
 }
 
-.btn-primary:hover, .btn-primary:focus {
+.btn-primary:hover,
+.btn-primary:focus {
   background: linear-gradient(90deg, #a99cf7 60%, #7b6cff 100%);
   box-shadow: 0 0 32px 4px #a99cf7;
 }
@@ -47,7 +54,8 @@
   border: 1.5px solid var(--border-light, #e0e0f0);
 }
 
-.btn-secondary:hover, .btn-secondary:focus {
+.btn-secondary:hover,
+.btn-secondary:focus {
   background: var(--soft-purple, #e3dafe);
   color: var(--primary-purple, #6c47ff);
 }
@@ -59,7 +67,8 @@
   border: 1.5px solid var(--accent-red, #ef4444);
 }
 
-.btn-danger:hover, .btn-danger:focus {
+.btn-danger:hover,
+.btn-danger:focus {
   background: #dc2626;
   color: white;
   border-color: #dc2626;
@@ -72,7 +81,8 @@
   border: 1.5px solid var(--accent-green, #22c55e);
 }
 
-.btn-success:hover, .btn-success:focus {
+.btn-success:hover,
+.btn-success:focus {
   background: #16a34a;
   color: white;
   border-color: #16a34a;
@@ -85,7 +95,8 @@
   border: 1.5px solid var(--accent-blue, #2563eb);
 }
 
-.btn-blue:hover, .btn-blue:focus {
+.btn-blue:hover,
+.btn-blue:focus {
   background: #1d4ed8;
   color: white;
   border-color: #1d4ed8;
@@ -98,7 +109,8 @@
   border: 1.5px solid var(--header-purple, #471d8b);
 }
 
-.btn-purple:hover, .btn-purple:focus {
+.btn-purple:hover,
+.btn-purple:focus {
   background: #3b1773;
   color: white;
   border-color: #3b1773;
@@ -111,7 +123,8 @@
   border: 1.5px solid var(--primary-purple, #6c47ff);
 }
 
-.btn-outline:hover, .btn-outline:focus {
+.btn-outline:hover,
+.btn-outline:focus {
   background: rgba(108, 71, 255, 0.1);
   color: var(--primary-purple, #6c47ff);
   box-shadow: 0 4px 16px rgba(108, 71, 255, 0.12);
@@ -124,7 +137,8 @@
   border: 1.5px solid transparent;
 }
 
-.btn-ghost:hover, .btn-ghost:focus {
+.btn-ghost:hover,
+.btn-ghost:focus {
   background: rgba(227, 218, 254, 0.5);
   color: var(--primary-purple, #6c47ff);
 }

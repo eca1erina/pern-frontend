@@ -16,7 +16,8 @@
   transition: all 0.2s ease;
 }
 
-.filter-button:hover, .filter-button:focus {
+.filter-button:hover,
+.filter-button:focus {
   background-color: var(--soft-purple, #e3dafe);
   color: var(--primary-purple, #6c47ff);
 }

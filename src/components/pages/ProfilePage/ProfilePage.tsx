@@ -12,7 +12,6 @@ import { getData, putData } from '@/utils/api';
 import { useCurrency } from '@/context/CurrencyContext';
 import toast from 'react-hot-toast';
 
-
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -133,7 +132,10 @@ const ProfilePage = () => {
         <h1 className="header" style={{ alignSelf: 'flex-start' }}>
           Profile
         </h1>
-        <div style={{ cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => router.push('/profile')}>
+        <div
+          style={{ cursor: 'pointer', marginBottom: '1.5rem' }}
+          onClick={() => router.push('/profile')}
+        >
           <UserCard name={user?.name || 'User'} />
         </div>
 
@@ -245,7 +247,10 @@ const ProfilePage = () => {
             </div>
             <div className={styles.profileFieldGroup}>
               <label className={styles.profileLabel}>Password</label>
-              <div className={styles.profileInputRow} style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}>
+              <div
+                className={styles.profileInputRow}
+                style={{ flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}
+              >
                 <input
                   className={styles.profileInput}
                   type="password"
@@ -304,7 +309,6 @@ const ProfilePage = () => {
               <span className={styles.accountDetailLabel}>Member Since</span>
               <span className={styles.accountDetailDate}>{joinDate}</span>
             </div>
-            
           </div>
         </div>
 

@@ -59,7 +59,7 @@ const Income = () => {
   const { rate, symbol } = useCurrency();
 
   const availableYears = Array.from(
-    new Set(incomeEntries.map((entry) => new Date(entry.date).getFullYear()))
+    new Set(incomeEntries.map((entry) => new Date(entry.date).getFullYear())),
   ).sort((a, b) => b - a);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -103,66 +103,65 @@ const Income = () => {
   };
 
   useEffect(() => {
-  const session = sessionStorage.getItem('user');
-  if (!session) {
-    console.error('No user session found.');
-    setLoading(false);
-    return;
-  }
-
-  const { id } = JSON.parse(session);
-
-  const fetchIncomeData = async () => {
-    try {
-      const userRes = await getData(`/users/${id}`);
-      setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
-
-      //Backend income
-      const backendIncome = await getData(`/transactions/income?user_id=${id}`);
-      const formattedBackend = backendIncome.map((tx: any) => ({
-        id: tx.id,
-        date: tx.date,
-        source: tx.description || 'Income',
-        amount: Number(tx.amount),
-      }));
-
-      // Mock bank income
-      const rawMockIncome = sessionStorage.getItem('bank_income') || '[]';
-      const parsedMock = JSON.parse(rawMockIncome);
-      const formattedMock = parsedMock.map((tx: any, idx: number) => ({
-        id: tx.id ?? `mock-${idx}`,
-        date: tx.date,
-        source: tx.description || tx.category_id || 'Bank Income',
-        amount: Number(tx.amount),
-      }));
-
-      console.log('Mock income entries:', parsedMock);
-
-
-      const allIncome = [...formattedBackend, ...formattedMock].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-
-      setIncomeEntries(allIncome);
-    } catch (error) {
-      console.error('Error loading income data:', error);
-    } finally {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      console.error('No user session found.');
       setLoading(false);
+      return;
     }
-  };
 
-  fetchIncomeData();
+    const { id } = JSON.parse(session);
 
-  const handleBankDataChanged = () => {
+    const fetchIncomeData = async () => {
+      try {
+        const userRes = await getData(`/users/${id}`);
+        setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
+
+        //Backend income
+        const backendIncome = await getData(`/transactions/income?user_id=${id}`);
+        const formattedBackend = backendIncome.map((tx: any) => ({
+          id: tx.id,
+          date: tx.date,
+          source: tx.description || 'Income',
+          amount: Number(tx.amount),
+        }));
+
+        // Mock bank income
+        const rawMockIncome = sessionStorage.getItem('bank_income') || '[]';
+        const parsedMock = JSON.parse(rawMockIncome);
+        const formattedMock = parsedMock.map((tx: any, idx: number) => ({
+          id: tx.id ?? `mock-${idx}`,
+          date: tx.date,
+          source: tx.description || tx.category_id || 'Bank Income',
+          amount: Number(tx.amount),
+        }));
+
+        console.log('Mock income entries:', parsedMock);
+
+        const allIncome = [...formattedBackend, ...formattedMock].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+
+        setIncomeEntries(allIncome);
+      } catch (error) {
+        console.error('Error loading income data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchIncomeData();
-  };
 
-  window.addEventListener('bankDataChanged', handleBankDataChanged);
+    const handleBankDataChanged = () => {
+      fetchIncomeData();
+    };
 
-  return () => {
-    window.removeEventListener('bankDataChanged', handleBankDataChanged);
-  };
-}, []);
+    window.addEventListener('bankDataChanged', handleBankDataChanged);
+
+    return () => {
+      window.removeEventListener('bankDataChanged', handleBankDataChanged);
+    };
+  }, []);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -195,7 +194,7 @@ const Income = () => {
   const totalIncome = incomeEntries.reduce((sum, i) => sum + i.amount, 0);
 
   const filteredEntries = incomeEntries.filter(
-    (entry) => new Date(entry.date).getFullYear() === selectedYear
+    (entry) => new Date(entry.date).getFullYear() === selectedYear,
   );
 
   const groupedIncome: Record<string, number> = {};
@@ -204,7 +203,20 @@ const Income = () => {
     groupedIncome[month] = (groupedIncome[month] || 0) + entry.amount;
   });
 
-  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthOrder = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   const months = monthOrder.filter((month) => month in groupedIncome);
 
   const chartData = {
@@ -273,7 +285,6 @@ const Income = () => {
   const incomeMilestones = [5000, 10000, 20000, 50000, 100000];
   const yearlyIncome = filteredEntries.reduce((sum, e) => sum + e.amount, 0);
 
-
   return (
     <>
       <Sidebar />
@@ -283,75 +294,83 @@ const Income = () => {
       <div className="mainContent">
         <h1 className="header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           Income
-          <button
-            className="cardAddBtn add-expand-btn"
-            onClick={openModal}
-            aria-label="Add Income"
-          >
+          <button className="cardAddBtn add-expand-btn" onClick={openModal} aria-label="Add Income">
             <Plus size={18} color="#fff" />
             <span className="add-btn-text">Add Income</span>
           </button>
         </h1>
 
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 32, marginBottom: 32 }}>
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
             <span className="cardIcon">
               <PiggyBank />
             </span>
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}>
-              
-            </div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
             <span className="cardTitle">Total Income</span>
             <span className="cardValue">
-            {symbol}{(totalIncome * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {symbol}
+              {(totalIncome * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
 
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
             <span className="cardIcon">
               <PiggyBank />
             </span>
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}></div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
             <span className="cardTitle">Monthly Income</span>
             <span className="cardValue">
               {symbol}
-            {(
-              incomeEntries.filter((e) =>
-              new Date(e.date).getMonth() === new Date().getMonth() &&
-              new Date(e.date).getFullYear() === new Date().getFullYear()
-            )
-            .reduce((sum, e) => sum + e.amount, 0) * rate
-            ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {(
+                incomeEntries
+                  .filter(
+                    (e) =>
+                      new Date(e.date).getMonth() === new Date().getMonth() &&
+                      new Date(e.date).getFullYear() === new Date().getFullYear(),
+                  )
+                  .reduce((sum, e) => sum + e.amount, 0) * rate
+              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
 
-          <div className="card" style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}>
-    <span className="cardIcon">
+          <div
+            className="card"
+            style={{ position: 'relative', minWidth: 340, width: 370, paddingRight: 32 }}
+          >
+            <span className="cardIcon">
               <PiggyBank />
             </span>
 
-            <div style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}></div>
+            <div
+              style={{ position: 'absolute', top: 18, right: 18, minWidth: 110, zIndex: 2 }}
+            ></div>
 
-    <span className="cardTitle">Top Income Source</span>
-    <span className="cardValue">
-  {
-    (() => {
-      const top = Object.entries(
-        filteredEntries.reduce((acc: Record<string, number>, e) => {
-          acc[e.source] = (acc[e.source] || 0) + e.amount;
-          return acc;
-        }, {})
-      ).sort((a, b) => b[1] - a[1])[0];
+            <span className="cardTitle">Top Income Source</span>
+            <span className="cardValue">
+              {(() => {
+                const top = Object.entries(
+                  filteredEntries.reduce((acc: Record<string, number>, e) => {
+                    acc[e.source] = (acc[e.source] || 0) + e.amount;
+                    return acc;
+                  }, {}),
+                ).sort((a, b) => b[1] - a[1])[0];
 
-      return top
-        ? `${top[0]} - ${symbol}${(top[1] * rate).toLocaleString(undefined)}`
-        : 'N/A';
-    })()
-  }
-</span>
-
-  </div>
-
+                return top
+                  ? `${top[0]} - ${symbol}${(top[1] * rate).toLocaleString(undefined)}`
+                  : 'N/A';
+              })()}
+            </span>
+          </div>
         </div>
 
         <div className="chartContainer">
@@ -392,9 +411,17 @@ const Income = () => {
                 <tr key={entry.id} style={{ borderBottom: '1px solid #ede9fe' }}>
                   <td style={{ padding: '10px 0' }}>{entry.date}</td>
                   <td style={{ padding: '10px 0' }}>{entry.source}</td>
-                  <td style={{ textAlign: 'right', padding: '10px 0', color: '#22c55e', fontWeight: 600 }}>
-  {symbol}{(entry.amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-</td>
+                  <td
+                    style={{
+                      textAlign: 'right',
+                      padding: '10px 0',
+                      color: '#22c55e',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {symbol}
+                    {(entry.amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
 
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button
@@ -423,44 +450,41 @@ const Income = () => {
         </div>
 
         <div className="milestoneSection">
-  <h2>Income Milestones</h2>
-  <ul className="milestoneList">
-    {incomeMilestones.map((milestone) => {
-      const convertedMilestone = milestone * rate;
-      const convertedYearly = yearlyIncome * rate;
+          <h2>Income Milestones</h2>
+          <ul className="milestoneList">
+            {incomeMilestones.map((milestone) => {
+              const convertedMilestone = milestone * rate;
+              const convertedYearly = yearlyIncome * rate;
 
-      const achieved = convertedYearly >= convertedMilestone;
-      const progress = Math.min((convertedYearly / convertedMilestone) * 100, 100);
+              const achieved = convertedYearly >= convertedMilestone;
+              const progress = Math.min((convertedYearly / convertedMilestone) * 100, 100);
 
-      return (
-        <li key={milestone} className={`milestoneItem ${achieved ? 'achieved' : ''}`}>
-          <div className="milestoneHeader">
-            <span>
-              {symbol}
-              {convertedMilestone.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </span>
-            {achieved ? (
-              <span className="milestoneStatus"> Achieved </span>
-            ) : (
-              <span className="milestoneStatus">{progress.toFixed(0)}%</span>
-            )}
-          </div>
-          {!achieved && (
-            <div className="milestoneProgressBar">
-              <div
-                className="milestoneProgress"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          )}
-        </li>
-      );
-    })}
-  </ul>
-</div>
+              return (
+                <li key={milestone} className={`milestoneItem ${achieved ? 'achieved' : ''}`}>
+                  <div className="milestoneHeader">
+                    <span>
+                      {symbol}
+                      {convertedMilestone.toLocaleString(undefined, {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                    {achieved ? (
+                      <span className="milestoneStatus"> Achieved </span>
+                    ) : (
+                      <span className="milestoneStatus">{progress.toFixed(0)}%</span>
+                    )}
+                  </div>
+                  {!achieved && (
+                    <div className="milestoneProgressBar">
+                      <div className="milestoneProgress" style={{ width: `${progress}%` }}></div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
         <Copyright />
       </div>

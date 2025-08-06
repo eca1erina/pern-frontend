@@ -12,10 +12,10 @@
   pointer-events: all;
 }
 .modal-overlay-enter {
-  animation: modal-fade-in 0.35s cubic-bezier(0.4,0,0.2,1);
+  animation: modal-fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .modal-overlay-exit {
-  animation: modal-fade-out 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
+  animation: modal-fade-out 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
 }
 
@@ -24,20 +24,22 @@
   border-radius: 24px;
   padding: 2.7rem 2.1rem 2.1rem 2.1rem;
   width: 370px;
-  box-shadow: 0 12px 48px 0 rgba(108, 99, 255, 0.22), 0 4px 16px rgba(80, 85, 155, 0.13);
+  box-shadow:
+    0 12px 48px 0 rgba(108, 99, 255, 0.22),
+    0 4px 16px rgba(80, 85, 155, 0.13);
   border: 1.5px solid #ede7ff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  animation: card-fade-in 0.7s cubic-bezier(0.4,0,0.2,1);
+  animation: card-fade-in 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   opacity: 1;
 }
 .modal-card-enter {
-  animation: modal-slide-in 0.35s cubic-bezier(0.4,0,0.2,1);
+  animation: modal-slide-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .modal-card-exit {
-  animation: modal-slide-out 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
+  animation: modal-slide-out 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
 }
 
@@ -71,13 +73,17 @@
 .modal-number-input,
 .modal-datepicker-input {
   width: 100%;
-  padding-left: 1.1rem; 
+  padding-left: 1.1rem;
   background: #f8f8fc;
   color: var(--header-purple, #3a206b);
   border-radius: 12px;
   border: 1.5px solid #e0e0f0;
   font-size: 1.04rem;
-  transition: border 0.22s, box-shadow 0.22s, background 0.22s, color 0.22s;
+  transition:
+    border 0.22s,
+    box-shadow 0.22s,
+    background 0.22s,
+    color 0.22s;
   outline: none;
   box-shadow: 0 1px 4px rgba(108, 99, 255, 0.04);
   box-sizing: border-box;
@@ -88,10 +94,12 @@
 .modal-number-input:focus,
 .modal-datepicker-input:focus {
   border: 1.5px solid var(--primary-purple, #6c63ff);
-  box-shadow: 0 0 0 4px #ede7ff, 0 2px 12px rgba(108, 99, 255, 0.13);
+  box-shadow:
+    0 0 0 4px #ede7ff,
+    0 2px 12px rgba(108, 99, 255, 0.13);
   background: #f3f1fa;
   color: var(--header-purple, #3a206b);
-  animation: input-glow 0.22s cubic-bezier(0.4,0,0.2,1);
+  animation: input-glow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .modal-input::placeholder,
 .modal-number-input::placeholder,
@@ -101,8 +109,16 @@
   font-size: 0.98rem;
 }
 @keyframes input-glow {
-  0% { box-shadow: 0 0 0 0 #ede7ff, 0 1px 4px rgba(108, 99, 255, 0.04); }
-  100% { box-shadow: 0 0 0 4px #ede7ff, 0 2px 12px rgba(108, 99, 255, 0.13); }
+  0% {
+    box-shadow:
+      0 0 0 0 #ede7ff,
+      0 1px 4px rgba(108, 99, 255, 0.04);
+  }
+  100% {
+    box-shadow:
+      0 0 0 4px #ede7ff,
+      0 2px 12px rgba(108, 99, 255, 0.13);
+  }
 }
 
 .modal-checkbox-label {
@@ -145,7 +161,10 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #a18aff;
-  transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+  transition:
+    border-color 0.22s,
+    box-shadow 0.22s,
+    background 0.22s;
 }
 
 .modal-checkbox:checked + .custom-checkbox {
@@ -164,7 +183,9 @@
   border-radius: 1px;
   transform: scale(0.7) rotate(-45deg);
   opacity: 0;
-  transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1);
+  transition:
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-checkbox:checked + .custom-checkbox::after {
@@ -177,9 +198,15 @@
   border-color: #6c63ff;
 }
 @keyframes checkbox-pop {
-  0% { transform: scale(0.7); }
-  60% { transform: scale(1.18); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .modal-submit-btn {
@@ -197,7 +224,10 @@
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 4px 18px rgba(123, 108, 255, 0.13);
-  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  transition:
+    background 0.18s,
+    transform 0.18s,
+    box-shadow 0.18s;
   letter-spacing: 0.01em;
   border: 1.5px solid #ede7ff;
   display: flex;
@@ -209,14 +239,17 @@
 .modal-btn-text {
   text-align: center;
   margin-left: 1rem;
-  transition: margin-right 0.22s cubic-bezier(0.4,0,0.2,1);
+  transition: margin-right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .modal-btn-icon {
   align-items: center;
   opacity: 0;
   pointer-events: none;
   transform: translateX(16px);
-  transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1), right 0.22s cubic-bezier(0.4,0,0.2,1);
+  transition:
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   color: #fff;
 }
 .modal-submit-btn:hover .modal-btn-icon,
@@ -230,7 +263,8 @@
 .modal-submit-btn:focus .modal-btn-text {
   margin-right: 0.3rem;
 }
-.modal-submit-btn:hover, .modal-submit-btn:focus {
+.modal-submit-btn:hover,
+.modal-submit-btn:focus {
   background: linear-gradient(90deg, #a18aff 0%, #7b6cff 100%);
   transform: scale(1.045);
   box-shadow: 0 8px 32px rgba(108, 99, 255, 0.18);
@@ -253,10 +287,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), background 0.18s, color 0.18s;
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.18s,
+    color 0.18s;
   z-index: 10;
 }
-.modal-close-btn:hover, .modal-close-btn:focus {
+.modal-close-btn:hover,
+.modal-close-btn:focus {
   background: #ede7ff;
   color: var(--accent-red, #ef4444);
   transform: rotate(180deg) scale(1.13);
@@ -278,7 +316,9 @@
   border-radius: 12px;
   border: 1.5px solid #e0e0f0;
   font-size: 1.04rem;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
   outline: none;
   box-shadow: 0 1px 4px rgba(108, 99, 255, 0.04);
   box-sizing: border-box;
@@ -297,7 +337,10 @@
   width: 20px;
   pointer-events: auto;
   color: #a18aff;
-  transition: color 0.18s, transform 0.18s, opacity 0.18s;
+  transition:
+    color 0.18s,
+    transform 0.18s,
+    opacity 0.18s;
   z-index: 2;
 }
 
@@ -312,7 +355,9 @@
 
 .modal-datepicker-calendar {
   border-radius: 18px !important;
-  box-shadow: 0 8px 32px rgba(108, 99, 255, 0.13), 0 2px 8px rgba(80, 85, 155, 0.10);
+  box-shadow:
+    0 8px 32px rgba(108, 99, 255, 0.13),
+    0 2px 8px rgba(80, 85, 155, 0.1);
   border: 1.5px solid #ede7ff;
   background: linear-gradient(120deg, #fff 90%, #ede7ff 100%) !important;
   color: var(--header-purple, #3a206b);
@@ -341,7 +386,9 @@
 }
 .modal-datepicker-calendar .react-datepicker__day {
   border-radius: 8px;
-  transition: background 0.18s, color 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s;
 }
 .modal-datepicker-calendar .react-datepicker__day:hover {
   background: #ede7ff;
@@ -384,7 +431,9 @@
   border-radius: 12px;
   border: 1.5px solid #e0e0f0;
   font-size: 1.04rem;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
   outline: none;
   box-shadow: 0 1px 4px rgba(108, 99, 255, 0.04);
   box-sizing: border-box;
@@ -411,7 +460,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
   color: #a18aff;
   padding: 0;
   outline: none;
@@ -420,7 +473,8 @@
   width: 9px;
   height: 9px;
 }
-.modal-number-btn:hover, .modal-number-btn:focus {
+.modal-number-btn:hover,
+.modal-number-btn:focus {
   background: #d1c4f6;
   color: #6c63ff;
   box-shadow: 0 2px 8px #a18aff33;
@@ -428,22 +482,48 @@
 }
 
 @keyframes card-fade-in {
-  from { opacity: 0; transform: translateY(30px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes modal-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes modal-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes modal-slide-in {
-  from { opacity: 0; transform: translateY(40px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes modal-slide-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(40px) scale(0.97); }
-} 
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+  }
+}
