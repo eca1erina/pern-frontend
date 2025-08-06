@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import axios from 'axios';
@@ -42,15 +42,41 @@ interface NewIncomeData {
   is_recurring?: boolean;
 }
 
+interface TransactionEntry {
+  id: number;
+  date: string;
+  amount: number;
+  description?: string;
+  type: 'income' | 'expense';
+  category_id: string;
+}
+
+const INCOME_QUERY = `
+  query GetUserAndTransactions($id: Int!) {
+    getUser(id: $id) {
+      id
+      name
+      email
+    }
+    getTransactions(user_id: $id) {
+      id
+      date
+      amount
+      description
+      type
+      category_id
+    }
+  }
+`;
+
 const Income = () => {
   const { show, hide } = useLoader();
   useEffect(() => {
     show();
-    const timer = setTimeout(() => {
-      hide();
-    }, 1000);
-    return () => clearTimeout(timer);
-  });
+    const t = setTimeout(hide, 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   const [user, setUser] = useState<User | null>(null);
   const [, setLoading] = useState<boolean>(true);
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
@@ -67,21 +93,51 @@ const Income = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
 
-  const fetchIncomeData = async (userId: string) => {
-    try {
-      const incomeRes = await getData<IncomeEntry[]>(`/transactions/income?user_id=${userId}`);
-
-      const formattedIncome: IncomeEntry[] = incomeRes.map((tx) => ({
-        ...tx,
-        source: tx.description || 'Income',
-      }));
-
-      formattedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setIncomeEntries(formattedIncome);
-    } catch {
-      //console.error('Error fetching income data:', error);
+  const fetchIncomeData = useCallback(async () => {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
+      setLoading(false);
+      return;
     }
-  };
+
+    const { id } = JSON.parse(session);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: INCOME_QUERY, variables: { id } }),
+      });
+      const { data, errors } = await res.json();
+      if (errors) {
+        setLoading(false);
+        return;
+      }
+
+      setUser(data.getUser);
+
+      const backendIncome = data.getTransactions.filter(
+        (tx: TransactionEntry) => tx.type === 'income',
+      );
+      const mock = JSON.parse(sessionStorage.getItem('bank_income') || '[]') as TransactionEntry[];
+
+      const merged = [
+        ...backendIncome,
+        ...mock.map((tx, i) => ({
+          ...tx,
+          id: tx.id ?? `mock-${i}`,
+          amount: Number(tx.amount),
+        })),
+      ];
+
+      merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setIncomeEntries(merged);
+    } catch {
+      // handle
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleDeleteClick = (entry: IncomeEntry) => {
     setDeleteTarget(entry);
@@ -184,7 +240,7 @@ const Income = () => {
 
       await axios.post(`${apiUrl}/transactions`, payload);
 
-      await fetchIncomeData(userId);
+      await fetchIncomeData();
       closeModal();
     } catch {
       //console.error('Failed to add income:', error);

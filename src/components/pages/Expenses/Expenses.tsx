@@ -25,6 +25,24 @@ import { useCurrency } from '@/context/CurrencyContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+const EXPENSES_QUERY = `
+  query GetUserAndTransactions($id: Int!) {
+    getTransactions(user_id: $id) {
+      id
+      date
+      amount
+      description
+      type
+      category_id
+    }
+    getUser(id: $id) {
+      id
+      name
+      email
+    }
+  }
+`;
+
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -68,6 +86,7 @@ const chartOptions = {
 };
 
 interface MockExpense {
+  type: string;
   id?: number;
   date: string | number;
   category_id?: string;
@@ -79,12 +98,12 @@ interface MockExpense {
 const Expenses = () => {
   const { show, hide } = useLoader();
   useEffect(() => {
-    show();
-    const timer = setTimeout(() => {
-      hide();
-    }, 1000);
-    return () => clearTimeout(timer);
-  });
+  show();
+  const timer = setTimeout(() => {
+    hide();
+  }, 1000);
+  return () => clearTimeout(timer);
+}, []);
 
   const [user, setUser] = useState<User | null>(null);
   const [, setLoading] = useState<boolean>(true);
@@ -100,84 +119,89 @@ const Expenses = () => {
   const router = useRouter();
 
   const fetchUserData = useCallback(async () => {
-    const session = sessionStorage.getItem('user');
-    if (!session) {
-      //console.error('No user session found.');
+  const session = sessionStorage.getItem('user');
+  if (!session) {
+    setLoading(false);
+    return;
+  }
+
+  const { id } = JSON.parse(session);
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: EXPENSES_QUERY, variables: { id } })
+    });
+
+    const result = await res.json();
+
+    if (result.errors) {
       setLoading(false);
       return;
     }
 
-    const { id } = JSON.parse(session);
+    const { getUser, getTransactions } = result.data;
+    setUser(getUser);
 
-    try {
-      const userRes = await getData<User>(`/users/${id}`);
-      const { name, email } = userRes;
-      setUser({ name, email, avatarUrl: '' });
+    const backendExpenses = getTransactions.filter((tx: MockExpense) => tx.type === 'expense');
+    const mockExpenses: MockExpense[] = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-      const backendExpenses = await getData<MockExpense[]>(`/transactions/expenses?user_id=${id}`);
-      const mockExpenses: MockExpense[] = JSON.parse(
-        sessionStorage.getItem('bank_expense') || '[]',
+    const allExpenses = [
+      ...backendExpenses,
+      ...mockExpenses.map((tx: MockExpense) => ({
+        ...tx,
+        date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
+        source: 'mock-bank',
+      })),
+    ];
+
+    const now = new Date();
+
+    const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
+    setTotalExpenses(totalSum);
+    setRecentExpenses(allExpenses);
+
+    let chartExpenses = [...allExpenses];
+    if (filterRange === '1m') {
+      chartExpenses = chartExpenses.filter(
+        (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1))
       );
-
-      const allExpenses = [
-        ...backendExpenses,
-        ...mockExpenses.map((tx: MockExpense) => ({
-          ...tx,
-          date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
-          source: 'mock-bank',
-        })),
-      ];
-
-      const now = new Date();
-      // Set Total Expenses (no filtering)
-      const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
-      setTotalExpenses(totalSum);
-
-      // Set Recent Expenses (no filtering either)
-      setRecentExpenses(allExpenses);
-
-      // Apply time filtering only for chart data
-      let chartExpenses = [...allExpenses];
-      if (filterRange === '1m') {
-        chartExpenses = chartExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1)),
-        );
-      } else if (filterRange === '6m') {
-        chartExpenses = chartExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6)),
-        );
-      } else if (filterRange === '1y') {
-        chartExpenses = chartExpenses.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1)),
-        );
-      }
-
-      // Generate chart data from filtered list
-      const categoryMap: Record<string, number> = {};
-      chartExpenses.forEach((expense) => {
-        const category = expense.description || expense.category_id || 'Other';
-        categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
-      });
-
-      const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
-      setCategoryChartData({
-        labels: sortedCategories,
-        datasets: [
-          {
-            label: 'Expenses',
-            data: sortedCategories.map((cat) => categoryMap[cat] * rate),
-            backgroundColor: '#a5b4fc',
-            borderRadius: 8,
-            maxBarThickness: 32,
-          },
-        ],
-      });
-    } catch {
-      //console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
+    } else if (filterRange === '6m') {
+      chartExpenses = chartExpenses.filter(
+        (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6))
+      );
+    } else if (filterRange === '1y') {
+      chartExpenses = chartExpenses.filter(
+        (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1))
+      );
     }
-  },[]);
+
+    const categoryMap: Record<string, number> = {};
+    chartExpenses.forEach((expense) => {
+      const category = expense.description || expense.category_id || 'Other';
+      categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
+    });
+
+    const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
+    setCategoryChartData({
+      labels: sortedCategories,
+      datasets: [
+        {
+          label: 'Expenses',
+          data: sortedCategories.map((cat) => categoryMap[cat] * rate),
+          backgroundColor: '#a5b4fc',
+          borderRadius: 8,
+          maxBarThickness: 32,
+        },
+      ],
+    });
+  } catch {
+    // handle error
+  } finally {
+    setLoading(false);
+  }
+}, [filterRange, rate]);
 
   useEffect(() => {
     fetchUserData();
@@ -191,7 +215,7 @@ const Expenses = () => {
     return () => {
       window.removeEventListener('bankDataChanged', handleBankDataChange);
     };
-  }, [filterRange, fetchUserData]);
+  }, [filterRange]);
 
   const handleAddExpense = async (expense: {
     date: string;
