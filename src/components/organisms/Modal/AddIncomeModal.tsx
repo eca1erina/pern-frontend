@@ -35,7 +35,7 @@ const AddIncomeModal: React.FC<AddIncomeModalProps> = ({ isOpen, onClose, onAddI
       const timeout = setTimeout(() => setShow(false), 350);
       return () => clearTimeout(timeout);
     }
-  }, [isOpen]);
+  }, [isOpen, show]);
 
   if (!show) return null;
 

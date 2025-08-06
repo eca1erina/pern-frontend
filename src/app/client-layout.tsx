@@ -15,8 +15,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       try {
         const user = JSON.parse(userJson);
         setIsLoggedIn(!!user.isLoggedIn);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
+      } catch {
+        //console.error('Error parsing user data:', error);
       }
     }
   }, []);

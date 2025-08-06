@@ -1,10 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import { useRouter } from 'next/navigation';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import './LandingTemplate.css';
 import { ILandingTemplateProps } from './ILandingTemplate';
+import Image from 'next/image';
 
 const infoCards = [
   {
@@ -21,13 +21,7 @@ const infoCards = [
   },
 ];
 
-const easeTheme: [number, number, number, number] = [0.4, 0, 0.2, 1];
-
-export const LandingTemplate: React.FC<ILandingTemplateProps> = ({
-  onLoginClick,
-  onGetStartedClick,
-  onSplineLoad,
-}) => {
+export const LandingTemplate: React.FC<ILandingTemplateProps> = ({ onSplineLoad }) => {
   const router = useRouter();
 
   const handleAboutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -42,7 +36,7 @@ export const LandingTemplate: React.FC<ILandingTemplateProps> = ({
     <div className="landing-template">
       <header className="landing-header minimal-header">
         <div className="landing-logo">
-          <img src="/logoSmall.png" alt="Wise Track Logo" />
+          <Image src="/logoSmall.png" alt="Wise Track Logo" />
           <span>Wise Track</span>
         </div>
         <nav className="landing-nav">

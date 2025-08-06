@@ -13,7 +13,7 @@ const LandingPage: React.FC = () => {
       hide();
     }, 1800);
     return () => clearTimeout(timer);
-  }, []);
+  });
 
   const handleLoginClick = () => {
     router.push('/login');

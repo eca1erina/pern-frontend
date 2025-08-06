@@ -7,59 +7,52 @@ if (!apiUrl) {
 }
 
 // GET request
-export const getData = async <T = any>(
-  endpoint: string,
-  config: AxiosRequestConfig = {},
-): Promise<T> => {
+export const getData = async <T>(endpoint: string, config: AxiosRequestConfig = {}): Promise<T> => {
   try {
-    const response = await axios.get(`${apiUrl}${endpoint}`, config);
+    const response = await axios.get<T>(`${apiUrl}${endpoint}`, config);
     return response.data;
-  } catch (error: any) {
-    console.error('GET request failed:', error);
-    throw error.response?.data || error;
+  } catch (error) {
+    throw error;
   }
 };
 
 // POST request
-export const postData = async <T = any>(
+export const postData = async <T>(
   endpoint: string,
-  data: any,
+  data: unknown,
   config: AxiosRequestConfig = {},
 ): Promise<T> => {
   try {
     const response = await axios.post(`${apiUrl}${endpoint}`, data, config);
     return response.data;
-  } catch (error: any) {
-    console.error('POST request failed:', error);
-    throw error.response?.data || error;
+  } catch (error) {
+    throw error;
   }
 };
 
 // PUT request
-export const putData = async <T = any>(
+export const putData = async <T>(
   endpoint: string,
-  data: any,
+  data: unknown,
   config: AxiosRequestConfig = {},
 ): Promise<T> => {
   try {
     const response = await axios.put(`${apiUrl}${endpoint}`, data, config);
     return response.data;
-  } catch (error: any) {
-    console.error('PUT request failed:', error);
-    throw error.response?.data || error;
+  } catch (error) {
+    throw error;
   }
 };
 
 // DELETE request
-export const deleteData = async <T = any>(
+export const deleteData = async <T>(
   endpoint: string,
   config: AxiosRequestConfig = {},
 ): Promise<T> => {
   try {
     const response = await axios.delete(`${apiUrl}${endpoint}`, config);
     return response.data;
-  } catch (error: any) {
-    console.error('DELETE request failed:', error);
-    throw error.response?.data || error;
+  } catch (error) {
+    throw error;
   }
 };

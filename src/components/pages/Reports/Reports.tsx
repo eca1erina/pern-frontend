@@ -43,7 +43,7 @@ const Reports = () => {
   const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
   const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
   const router = useRouter();
-  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [, setExportModalOpen] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [animateExportOut, setAnimateExportOut] = useState(false);
@@ -52,13 +52,13 @@ const Reports = () => {
   useEffect(() => {
     const session = sessionStorage.getItem('user');
     if (!session) {
-      console.error('No user session found.');
+      //console.error('No user session found.');
       setLoading(false);
       return;
     }
 
     const { id } = JSON.parse(session);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL; // your GraphQL endpoint
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     const query = `
     query GetUserAndTransactions($id: Int!) {
@@ -89,7 +89,7 @@ const Reports = () => {
         const result = await response.json();
 
         if (result.errors) {
-          console.error('GraphQL errors:', result.errors);
+          //console.error('GraphQL errors:', result.errors);
           setLoading(false);
           return;
         }
@@ -109,7 +109,7 @@ const Reports = () => {
         const mockIncomeRaw = sessionStorage.getItem('bank_income');
         const mockIncome: TransactionEntry[] = mockIncomeRaw
           ? JSON.parse(mockIncomeRaw)
-              .map((tx: any, index: number) => {
+              .map((tx: TransactionEntry, index: number) => {
                 const parsedAmount = Number(tx.amount);
                 const parsedDate = new Date(tx.date);
                 if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
@@ -131,7 +131,7 @@ const Reports = () => {
         const mockExpensesRaw = sessionStorage.getItem('bank_expense');
         const mockExpenses: TransactionEntry[] = mockExpensesRaw
           ? JSON.parse(mockExpensesRaw)
-              .map((tx: any, index: number) => {
+              .map((tx: TransactionEntry, index: number) => {
                 const parsedAmount = Number(tx.amount);
                 const parsedDate = new Date(tx.date);
                 if (isNaN(parsedAmount) || isNaN(parsedDate.getTime())) return null;
@@ -159,8 +159,8 @@ const Reports = () => {
 
         setIncomeData(combinedIncome);
         setExpenseData(combinedExpenses);
-      } catch (error) {
-        console.error('Error loading data:', error);
+      } catch {
+        //console.error('Error loading data:', error);
       } finally {
         setLoading(false);
       }

@@ -32,15 +32,15 @@ const CurrencyProvider = ({ children }: { children: ReactNode }) => {
       setSymbol(data.symbol);
       setCurrencyState(data.currency);
       sessionStorage.setItem('currency', data.currency);
-    } catch (err) {
-      console.error('Exchange rate fetch error:', err);
+    } catch {
+      //console.error('Exchange rate fetch error:', err);
     }
   };
 
   useEffect(() => {
     const saved = sessionStorage.getItem('currency') || 'USD';
     fetchCurrencyRate(saved);
-  }, []);
+  });
 
   const setCurrency = (newCurrency: string) => {
     fetchCurrencyRate(newCurrency);

@@ -2,12 +2,11 @@
 import { useEffect, useState } from 'react';
 import './Dashboard.css';
 import React from 'react';
-import { PiggyBank, Wallet, Activity } from 'lucide-react';
+import { PiggyBank, Wallet } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
-import { getData } from '@/utils/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 import Copyright from '@/components/atoms/Copyright/Copyright';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -80,7 +80,7 @@ const Dashboard = () => {
   const session = sessionStorage.getItem('user');
   const { id } = session ? JSON.parse(session) : { id: null };
 
-  const { data, loading, error } = useQuery(GET_USER_AND_TRANSACTIONS, {
+  const { data, loading } = useQuery(GET_USER_AND_TRANSACTIONS, {
     variables: { id: Number(id) },
     skip: !id,
   });
@@ -211,7 +211,7 @@ const Dashboard = () => {
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: TooltipItem<'bar' | 'line'>) {
             // Add currency symbol with tooltip amounts
             return `${symbol}${context.parsed.y.toLocaleString(undefined, {
               minimumFractionDigits: 2,
@@ -269,7 +269,7 @@ const Dashboard = () => {
 
       const expense = transactions
         .filter((tx: TransactionEntry) => tx.type === 'expense')
-        .map((tx: any) => ({ ...tx, source: 'mock-bank' }));
+        .map((tx: TransactionEntry) => ({ ...tx, source: 'mock-bank' }));
 
       sessionStorage.setItem('bank_income', JSON.stringify(income));
       sessionStorage.setItem('bank_expense', JSON.stringify(expense));
@@ -280,8 +280,8 @@ const Dashboard = () => {
       setExpenseData((prev) => [...prev, ...expense]);
       window.dispatchEvent(new CustomEvent('bankDataChanged'));
       toast('Bank account connected and transactions loaded!');
-    } catch (err) {
-      console.error(err);
+    } catch {
+      //console.error(err);
       toast('Failed to connect bank account.');
     }
   };

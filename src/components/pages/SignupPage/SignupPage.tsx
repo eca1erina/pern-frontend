@@ -11,7 +11,6 @@ export default function SignupPage() {
   // Handle signup
   const handleSignup = async (formData: { name: string; email: string; password: string }) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const res = await postData('/users/signup', {
         name: formData.name,
         email: formData.email,

@@ -14,8 +14,8 @@ export default function Home() {
       try {
         const user = JSON.parse(userJson);
         setIsLoggedIn(!!user.isLoggedIn);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
+      } catch {
+        //console.error('Error parsing user data:', error);
       }
     }
     setIsLoading(false);

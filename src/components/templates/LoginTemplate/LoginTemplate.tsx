@@ -4,6 +4,7 @@ import React from 'react';
 import './LoginTemplate.css';
 import { LoginCard } from '@organisms/LoginCard/LoginCard';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type LoginTemplateProps = {
   onLogin: (email: string, password: string) => void;
@@ -20,7 +21,7 @@ export const LoginTemplate: React.FC<LoginTemplateProps> = ({ onLogin, errorMess
   return (
     <div className="login-template">
       {/* Top-left logo */}
-      <img src="/logoSmall.png" alt="Wise Track Logo" className="login-page-logo-topleft" />
+      <Image src="/logoSmall.png" alt="Wise Track Logo" className="login-page-logo-topleft" />
 
       {/* Login form card */}
       <LoginCard

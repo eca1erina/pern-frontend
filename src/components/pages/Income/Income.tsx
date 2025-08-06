@@ -28,6 +28,8 @@ import { useCurrency } from '@/context/CurrencyContext';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface IncomeEntry {
+  category_id: string;
+  description: string;
   id: number;
   date: string;
   source: string;
@@ -48,9 +50,9 @@ const Income = () => {
       hide();
     }, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  });
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -67,19 +69,17 @@ const Income = () => {
 
   const fetchIncomeData = async (userId: string) => {
     try {
-      const incomeRes = await getData(`/transactions/income?user_id=${userId}`);
+      const incomeRes = await getData<IncomeEntry[]>(`/transactions/income?user_id=${userId}`);
 
-      const formattedIncome: IncomeEntry[] = incomeRes.map((tx: any) => ({
-        id: tx.id,
-        date: tx.date,
+      const formattedIncome: IncomeEntry[] = incomeRes.map((tx) => ({
+        ...tx,
         source: tx.description || 'Income',
-        amount: Number(tx.amount),
       }));
 
       formattedIncome.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setIncomeEntries(formattedIncome);
-    } catch (error) {
-      console.error('Error fetching income data:', error);
+    } catch {
+      //console.error('Error fetching income data:', error);
     }
   };
 
@@ -94,8 +94,8 @@ const Income = () => {
     try {
       await deleteData(`/transactions/${deleteTarget.id}`);
       setIncomeEntries((prev) => prev.filter((e) => e.id !== deleteTarget.id));
-    } catch (error) {
-      console.error('Failed to delete transaction:', error);
+    } catch {
+      //console.error('Failed to delete transaction:', error);
     } finally {
       setDeleteModalOpen(false);
       setDeleteTarget(null);
@@ -105,7 +105,7 @@ const Income = () => {
   useEffect(() => {
     const session = sessionStorage.getItem('user');
     if (!session) {
-      console.error('No user session found.');
+      //console.error('No user session found.');
       setLoading(false);
       return;
     }
@@ -114,12 +114,12 @@ const Income = () => {
 
     const fetchIncomeData = async () => {
       try {
-        const userRes = await getData(`/users/${id}`);
+        const userRes = await getData<User>(`/users/${id}`);
         setUser({ name: userRes.name, email: userRes.email, avatarUrl: '' });
 
         //Backend income
-        const backendIncome = await getData(`/transactions/income?user_id=${id}`);
-        const formattedBackend = backendIncome.map((tx: any) => ({
+        const backendIncome = await getData<IncomeEntry[]>(`/transactions/income?user_id=${id}`);
+        const formattedBackend = backendIncome.map((tx: IncomeEntry) => ({
           id: tx.id,
           date: tx.date,
           source: tx.description || 'Income',
@@ -129,22 +129,22 @@ const Income = () => {
         // Mock bank income
         const rawMockIncome = sessionStorage.getItem('bank_income') || '[]';
         const parsedMock = JSON.parse(rawMockIncome);
-        const formattedMock = parsedMock.map((tx: any, idx: number) => ({
+        const formattedMock = parsedMock.map((tx: IncomeEntry, idx: number) => ({
           id: tx.id ?? `mock-${idx}`,
           date: tx.date,
           source: tx.description || tx.category_id || 'Bank Income',
           amount: Number(tx.amount),
         }));
 
-        console.log('Mock income entries:', parsedMock);
+        //console.log('Mock income entries:', parsedMock);
 
         const allIncome = [...formattedBackend, ...formattedMock].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
 
         setIncomeEntries(allIncome);
-      } catch (error) {
-        console.error('Error loading income data:', error);
+      } catch {
+        //console.error('Error loading income data:', error);
       } finally {
         setLoading(false);
       }
@@ -186,8 +186,8 @@ const Income = () => {
 
       await fetchIncomeData(userId);
       closeModal();
-    } catch (error) {
-      console.error('Failed to add income:', error);
+    } catch {
+      //console.error('Failed to add income:', error);
     }
   };
 

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import { User } from '@organisms/UserCard/IUserCard';
@@ -67,6 +67,15 @@ const chartOptions = {
   },
 };
 
+interface MockExpense {
+  id?: number;
+  date: string | number;
+  category_id?: string;
+  description?: string;
+  amount: number | string;
+  is_recurring?: boolean;
+}
+
 const Expenses = () => {
   const { show, hide } = useLoader();
   useEffect(() => {
@@ -75,9 +84,10 @@ const Expenses = () => {
       hide();
     }, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  });
+
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [categoryChartData, setCategoryChartData] = useState<any>(null);
@@ -89,10 +99,10 @@ const Expenses = () => {
 
   const router = useRouter();
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     const session = sessionStorage.getItem('user');
     if (!session) {
-      console.error('No user session found.');
+      //console.error('No user session found.');
       setLoading(false);
       return;
     }
@@ -100,16 +110,18 @@ const Expenses = () => {
     const { id } = JSON.parse(session);
 
     try {
-      const userRes = await getData(`/users/${id}`);
+      const userRes = await getData<User>(`/users/${id}`);
       const { name, email } = userRes;
       setUser({ name, email, avatarUrl: '' });
 
-      const backendExpenses = await getData(`/transactions/expenses?user_id=${id}`);
-      const mockExpenses = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
+      const backendExpenses = await getData<MockExpense[]>(`/transactions/expenses?user_id=${id}`);
+      const mockExpenses: MockExpense[] = JSON.parse(
+        sessionStorage.getItem('bank_expense') || '[]',
+      );
 
       const allExpenses = [
         ...backendExpenses,
-        ...mockExpenses.map((tx: any) => ({
+        ...mockExpenses.map((tx: MockExpense) => ({
           ...tx,
           date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
           source: 'mock-bank',
@@ -160,12 +172,12 @@ const Expenses = () => {
           },
         ],
       });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
+    } catch {
+      //console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  };
+  },[]);
 
   useEffect(() => {
     fetchUserData();
@@ -179,7 +191,7 @@ const Expenses = () => {
     return () => {
       window.removeEventListener('bankDataChanged', handleBankDataChange);
     };
-  }, [filterRange]);
+  }, [filterRange, fetchUserData]);
 
   const handleAddExpense = async (expense: {
     date: string;
@@ -205,8 +217,8 @@ const Expenses = () => {
 
       setShowModal(false);
       fetchUserData();
-    } catch (err) {
-      console.error('Failed to add expense:', err);
+    } catch {
+      //console.error('Failed to add expense:', err);
     }
   };
 
@@ -218,8 +230,8 @@ const Expenses = () => {
       setConfirmDeleteOpen(false);
       setSelectedExpenseId(null);
       fetchUserData();
-    } catch (error) {
-      console.error('Failed to delete expense:', error);
+    } catch {
+      //console.error('Failed to delete expense:', error);
     }
   };
 

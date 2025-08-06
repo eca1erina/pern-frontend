@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [joinDate, setJoinDate] = useState<string>('January 2024');
   const [userId, setUserId] = useState<number | null>(null);
 
@@ -25,11 +25,8 @@ const ProfilePage = () => {
   const [emailInput, setEmailInput] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [feedback, setFeedback] = useState('');
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
   const { currency, setCurrency } = useCurrency();
   const currencyOptions = ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY', 'RON'];
 
@@ -49,18 +46,17 @@ const ProfilePage = () => {
           name: string;
           email: string;
           joinDate: string;
-          lastLogin: string;
         }>(`/users/${id}`);
 
         if (userRes) {
-          const { name, email, joinDate, lastLogin } = userRes;
+          const { name, email, joinDate } = userRes;
           setUser({ name, email, avatarUrl: '' });
           setUsernameInput(name || '');
           setEmailInput(email || '');
           setJoinDate(joinDate || 'January 2024');
         }
-      } catch (error) {
-        console.error(error);
+      } catch {
+        //console.error(error);
         setFeedback('Failed to fetch user data.');
       } finally {
         setLoading(false);
@@ -81,8 +77,8 @@ const ProfilePage = () => {
         setEditUsername(false);
         setFeedback('Username updated successfully.');
       }
-    } catch (err: any) {
-      setFeedback(err.response?.data?.message || 'Failed to update username.');
+    } catch {
+      //setFeedback(err.response?.data?.message || 'Failed to update username.');
     }
   };
 
@@ -97,8 +93,8 @@ const ProfilePage = () => {
         setEditEmail(false);
         setFeedback('Email updated successfully.');
       }
-    } catch (err: any) {
-      setFeedback(err.response?.data?.message || 'Failed to update email.');
+    } catch {
+      //setFeedback(err.response?.data?.message || 'Failed to update email.');
     }
   };
 
@@ -120,8 +116,8 @@ const ProfilePage = () => {
         setEditPassword(false);
         setFeedback('Password updated successfully.');
       }
-    } catch (err: any) {
-      setFeedback(err.response?.data?.message || 'Failed to update password.');
+    } catch {
+      //setFeedback(err.response?.data?.message || 'Failed to update password.');
     }
   };
 

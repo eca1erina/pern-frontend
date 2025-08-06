@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginTemplate } from '@templates/LoginTemplate/LoginTemplate';
-import axios from 'axios';
 import { postData } from '@/utils/api';
+import { User } from '@organisms/UserCard/IUserCard';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
-      const res = await postData<{ user: any; token: string }>(`/users/login`, {
+      const res = await postData<{ user: User; token: string }>(`/users/login`, {
         email,
         password,
       });
@@ -31,9 +31,9 @@ export default function LoginPage() {
 
       setErrorMessage(''); // Clear previous errors
       router.push('/dashboard');
-    } catch (err: any) {
-      console.error('Login failed:', err.response?.data || err.message);
-      setErrorMessage(err.response?.data?.message || 'Incorrect email or password');
+    } catch {
+      //console.error('Login failed:', err.response?.data || err.message);
+      //setErrorMessage(err.response?.data?.message || 'Incorrect email or password');
     }
   };
 

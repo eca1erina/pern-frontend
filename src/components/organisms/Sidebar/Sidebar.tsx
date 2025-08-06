@@ -21,8 +21,8 @@ const Sidebar = () => {
   const router = useRouter();
   const currentPath = usePathname();
   const navRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 });
-  const [mounted, setMounted] = useState(false);
+  const [, setIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 });
+  const [, setMounted] = useState(false);
 
   const [userId, setUserId] = useState<number | null>(null);
   const [aiTips, setAiTips] = useState<string[]>([]);
@@ -32,7 +32,7 @@ const Sidebar = () => {
     const session = sessionStorage.getItem('user');
     if (session) {
       const parsed = JSON.parse(session);
-      console.log('User ID from session:', parsed.id);
+      //console.log('User ID from session:', parsed.id);
       setUserId(parsed.id);
     }
   }, []);
@@ -43,10 +43,10 @@ const Sidebar = () => {
         setLoading(true);
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
         const res = await axios.get(`${API_URL}/api/analyze-transactions?user_id=${userId}`);
-        console.log('AI tips response:', res.data);
+        //console.log('AI tips response:', res.data);
         setAiTips(res.data.tips || []);
-      } catch (err) {
-        console.error('Failed to fetch AI tips:', err);
+      } catch {
+        //console.error('Failed to fetch AI tips:', err);
       } finally {
         setLoading(false);
       }
@@ -108,7 +108,7 @@ const Sidebar = () => {
 
       {userId && (
         <div className="aiAssistantContainer">
-          <div className="aiMessageBubble">👋 Hi, I'm your AI assistant!</div>
+          <div className="aiMessageBubble">👋 Hi, I&apos;m your AI assistant!</div>
           {loading ? (
             <div className="aiMessageBubble">Analyzing your finances...</div>
           ) : (

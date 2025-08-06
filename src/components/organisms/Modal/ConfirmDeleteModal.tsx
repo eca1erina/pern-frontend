@@ -26,7 +26,7 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       const timeout = setTimeout(() => setShow(false), 350);
       return () => clearTimeout(timeout);
     }
-  }, [isOpen]);
+  }, [isOpen, show]);
 
   if (!show) return null;
 

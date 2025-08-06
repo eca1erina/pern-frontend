@@ -33,7 +33,7 @@ const AddExpenseModal: React.FC<Props> = ({ isOpen, onClose, onAddExpense }) => 
       const timeout = setTimeout(() => setShow(false), 350);
       return () => clearTimeout(timeout);
     }
-  }, [isOpen]);
+  }, [isOpen, show]);
 
   if (!show) return null;
 
