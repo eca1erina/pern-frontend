@@ -20,7 +20,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <span />
       </button>
       <UserCard name="Jasmine" />
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar />
       {sidebarOpen && (
         <div
           className="sidebar-overlay"
