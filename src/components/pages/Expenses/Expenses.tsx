@@ -98,12 +98,12 @@ interface MockExpense {
 const Expenses = () => {
   const { show, hide } = useLoader();
   useEffect(() => {
-  show();
-  const timer = setTimeout(() => {
-    hide();
-  }, 1000);
-  return () => clearTimeout(timer);
-}, []);
+    show();
+    const timer = setTimeout(() => {
+      hide();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [user, setUser] = useState<User | null>(null);
   const [, setLoading] = useState<boolean>(true);
@@ -119,89 +119,91 @@ const Expenses = () => {
   const router = useRouter();
 
   const fetchUserData = useCallback(async () => {
-  const session = sessionStorage.getItem('user');
-  if (!session) {
-    setLoading(false);
-    return;
-  }
-
-  const { id } = JSON.parse(session);
-
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: EXPENSES_QUERY, variables: { id } })
-    });
-
-    const result = await res.json();
-
-    if (result.errors) {
+    const session = sessionStorage.getItem('user');
+    if (!session) {
       setLoading(false);
       return;
     }
 
-    const { getUser, getTransactions } = result.data;
-    setUser(getUser);
+    const { id } = JSON.parse(session);
 
-    const backendExpenses = getTransactions.filter((tx: MockExpense) => tx.type === 'expense');
-    const mockExpenses: MockExpense[] = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: EXPENSES_QUERY, variables: { id } }),
+      });
 
-    const allExpenses = [
-      ...backendExpenses,
-      ...mockExpenses.map((tx: MockExpense) => ({
-        ...tx,
-        date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
-        source: 'mock-bank',
-      })),
-    ];
+      const result = await res.json();
 
-    const now = new Date();
+      if (result.errors) {
+        setLoading(false);
+        return;
+      }
 
-    const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
-    setTotalExpenses(totalSum);
-    setRecentExpenses(allExpenses);
+      const { getUser, getTransactions } = result.data;
+      setUser(getUser);
 
-    let chartExpenses = [...allExpenses];
-    if (filterRange === '1m') {
-      chartExpenses = chartExpenses.filter(
-        (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1))
+      const backendExpenses = getTransactions.filter((tx: MockExpense) => tx.type === 'expense');
+      const mockExpenses: MockExpense[] = JSON.parse(
+        sessionStorage.getItem('bank_expense') || '[]',
       );
-    } else if (filterRange === '6m') {
-      chartExpenses = chartExpenses.filter(
-        (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6))
-      );
-    } else if (filterRange === '1y') {
-      chartExpenses = chartExpenses.filter(
-        (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1))
-      );
+
+      const allExpenses = [
+        ...backendExpenses,
+        ...mockExpenses.map((tx: MockExpense) => ({
+          ...tx,
+          date: typeof tx.date === 'number' ? tx.date * 1000 : tx.date,
+          source: 'mock-bank',
+        })),
+      ];
+
+      const now = new Date();
+
+      const totalSum = allExpenses.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      setTotalExpenses(totalSum);
+      setRecentExpenses(allExpenses);
+
+      let chartExpenses = [...allExpenses];
+      if (filterRange === '1m') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 1)),
+        );
+      } else if (filterRange === '6m') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setMonth(now.getMonth() - 6)),
+        );
+      } else if (filterRange === '1y') {
+        chartExpenses = chartExpenses.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setFullYear(now.getFullYear() - 1)),
+        );
+      }
+
+      const categoryMap: Record<string, number> = {};
+      chartExpenses.forEach((expense) => {
+        const category = expense.description || expense.category_id || 'Other';
+        categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
+      });
+
+      const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
+      setCategoryChartData({
+        labels: sortedCategories,
+        datasets: [
+          {
+            label: 'Expenses',
+            data: sortedCategories.map((cat) => categoryMap[cat] * rate),
+            backgroundColor: '#a5b4fc',
+            borderRadius: 8,
+            maxBarThickness: 32,
+          },
+        ],
+      });
+    } catch {
+      // handle error
+    } finally {
+      setLoading(false);
     }
-
-    const categoryMap: Record<string, number> = {};
-    chartExpenses.forEach((expense) => {
-      const category = expense.description || expense.category_id || 'Other';
-      categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
-    });
-
-    const sortedCategories = Object.keys(categoryMap).sort((a, b) => a.localeCompare(b));
-    setCategoryChartData({
-      labels: sortedCategories,
-      datasets: [
-        {
-          label: 'Expenses',
-          data: sortedCategories.map((cat) => categoryMap[cat] * rate),
-          backgroundColor: '#a5b4fc',
-          borderRadius: 8,
-          maxBarThickness: 32,
-        },
-      ],
-    });
-  } catch {
-    // handle error
-  } finally {
-    setLoading(false);
-  }
-}, [filterRange, rate]);
+  }, [filterRange, rate]);
 
   useEffect(() => {
     fetchUserData();
