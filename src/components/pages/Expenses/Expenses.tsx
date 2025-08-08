@@ -1,6 +1,5 @@
 'use client';
 import React, { useCallback, useEffect, useState } from 'react';
-import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
@@ -278,7 +277,6 @@ const Expenses = () => {
 
   return (
     <>
-      <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

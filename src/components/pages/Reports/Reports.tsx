@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import '../Dashboard/Dashboard.css';
 import { PiggyBank, Wallet, Activity } from 'lucide-react';
@@ -474,7 +473,6 @@ const Reports = () => {
 
   return (
     <>
-      <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

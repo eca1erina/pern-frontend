@@ -1,6 +1,5 @@
 'use client';
 import React, { useCallback, useEffect, useState } from 'react';
-import Sidebar from '../../organisms/Sidebar/Sidebar';
 import UserCard from '@/components/organisms/UserCard/UserCard';
 import axios from 'axios';
 import { getData, deleteData } from '@/utils/api';
@@ -343,7 +342,6 @@ const Income = () => {
 
   return (
     <>
-      <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

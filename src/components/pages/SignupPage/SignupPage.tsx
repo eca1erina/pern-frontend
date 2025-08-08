@@ -8,23 +8,22 @@ import { postData } from '@/utils/api';
 export default function SignupPage() {
   const router = useRouter();
 
-  // Handle signup
   const handleSignup = async (formData: { name: string; email: string; password: string }) => {
     try {
-      const res = await postData('/users/signup', {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
+      const data = await postData<{ user: any; token: string; message?: string }>(
+        '/users/signup',
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        },
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!data || !data.user) {
         alert(data.message || 'Signup failed');
         return;
       }
 
-      // Save user info and token in sessionStorage
       sessionStorage.setItem(
         'user',
         JSON.stringify({
@@ -36,17 +35,13 @@ export default function SignupPage() {
         }),
       );
 
-      // Save token for authentication
       sessionStorage.setItem('token', data.token);
-
-      // Redirect to dashboard
       router.push('/dashboard');
-    } catch {
+    } catch (err) {
       alert('An error occurred during signup. Please try again.');
     }
   };
 
-  // Navigate to login page
   const handleLoginClick = () => {
     router.push('/login');
   };

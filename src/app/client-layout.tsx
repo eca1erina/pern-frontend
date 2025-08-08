@@ -28,9 +28,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // For authenticated routes, show sidebar and properly positioned content
   return (
-    <div className="app-container">
+    <div>
       <Sidebar />
-      <main className="main-content-with-sidebar">{children}</main>
+      <main>{children}</main>
     </div>
   );
 }

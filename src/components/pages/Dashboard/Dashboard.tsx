@@ -1,11 +1,11 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import './Dashboard.css';
 import React from 'react';
 import { PiggyBank, Wallet } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import UserCard from '@/components/organisms/UserCard/UserCard';
-import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
 import {
   Chart as ChartJS,
@@ -72,22 +72,32 @@ const Dashboard = () => {
   const [incomeData, setIncomeData] = useState<TransactionEntry[]>([]);
   const [expenseData, setExpenseData] = useState<TransactionEntry[]>([]);
   const [isBankConnected, setIsBankConnected] = useState<boolean>(false);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const router = useRouter();
-
   const { rate, symbol } = useCurrency();
 
-  const session = sessionStorage.getItem('user');
-  const { id } = session ? JSON.parse(session) : { id: null };
+  // Get user id from sessionStorage safely on client only
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const session = sessionStorage.getItem('user');
+      if (session) {
+        const parsed = JSON.parse(session);
+        setUserId(parsed.id);
+      }
+    }
+  }, []);
 
+  // Apollo query - skip until userId is available
   const { data, loading } = useQuery(GET_USER_AND_TRANSACTIONS, {
-    variables: { id: Number(id) },
-    skip: !id,
+    variables: { id: userId ?? 0 },
+    skip: !userId,
   });
 
   useEffect(() => {
     if (data) {
       setUser(data.getUser);
+
       const backendIncome = data.getTransactions.filter(
         (tx: { type: string }) => tx.type === 'income',
       );
@@ -95,16 +105,18 @@ const Dashboard = () => {
         (tx: { type: string }) => tx.type === 'expense',
       );
 
-      // bank data from sessionStorage
-      const bankIncome = JSON.parse(sessionStorage.getItem('bank_income') || '[]');
-      const bankExpense = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
+      // Bank data from sessionStorage (client-side only)
+      if (typeof window !== 'undefined') {
+        const bankIncome = JSON.parse(sessionStorage.getItem('bank_income') || '[]');
+        const bankExpense = JSON.parse(sessionStorage.getItem('bank_expense') || '[]');
 
-      if (bankIncome.length > 0 || bankExpense.length > 0) {
-        setIsBankConnected(true);
+        if (bankIncome.length > 0 || bankExpense.length > 0) {
+          setIsBankConnected(true);
+        }
+
+        setIncomeData([...backendIncome, ...bankIncome]);
+        setExpenseData([...backendExpense, ...bankExpense]);
       }
-
-      setIncomeData([...backendIncome, ...bankIncome]);
-      setExpenseData([...backendExpense, ...bankExpense]);
     }
   }, [data]);
 
@@ -169,8 +181,8 @@ const Dashboard = () => {
         rawCategory && rawCategory.length > 0
           ? rawCategory
           : rawDescription && rawDescription.length > 0
-            ? rawDescription
-            : 'Other';
+          ? rawDescription
+          : 'Other';
       acc[category] = (acc[category] || 0) + Number(tx.amount);
       return acc;
     }, {});
@@ -212,7 +224,6 @@ const Dashboard = () => {
         displayColors: false,
         callbacks: {
           label: function (context: TooltipItem<'bar' | 'line'>) {
-            // Add currency symbol with tooltip amounts
             return `${symbol}${context.parsed.y.toLocaleString(undefined, {
               minimumFractionDigits: 2,
             })}`;
@@ -246,6 +257,8 @@ const Dashboard = () => {
   };
 
   const handleConnectBank = async () => {
+    if (typeof window === 'undefined') return;
+
     const session = sessionStorage.getItem('user');
     if (!session) {
       alert('Please login to connect your bank.');
@@ -281,12 +294,13 @@ const Dashboard = () => {
       window.dispatchEvent(new CustomEvent('bankDataChanged'));
       toast('Bank account connected and transactions loaded!');
     } catch {
-      //console.error(err);
       toast('Failed to connect bank account.');
     }
   };
 
   const handleDisconnectBank = () => {
+    if (typeof window === 'undefined') return;
+
     sessionStorage.removeItem('bank_income');
     sessionStorage.removeItem('bank_expense');
 
@@ -304,7 +318,6 @@ const Dashboard = () => {
 
   return (
     <>
-      <Sidebar />
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

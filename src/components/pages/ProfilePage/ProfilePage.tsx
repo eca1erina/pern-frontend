@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Sidebar from '../../organisms/Sidebar/Sidebar';
 import { User } from '@organisms/UserCard/IUserCard';
 import '../Dashboard/Dashboard.css';
 import styles from './ProfilePage.module.css';
@@ -123,7 +122,6 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Sidebar />
       <div className="mainContent" style={{ alignItems: 'center' }}>
         <h1 className="header" style={{ alignSelf: 'flex-start' }}>
           Profile
