@@ -5,8 +5,9 @@ import { InputField } from '@atoms/InputField/InputField';
 export const LoginForm: React.FC<{ onSubmit: (email: string, password: string) => void }> = ({
   onSubmit,
 }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // ✅ Set default values here
+  const [email, setEmail] = useState('claire@gmail.com');
+  const [password, setPassword] = useState('123456');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -25,6 +25,7 @@ import toast from 'react-hot-toast';
 import Spline from '@splinetool/react-spline';
 import { useCurrency } from '@/context/CurrencyContext';
 import { gql, useQuery } from '@apollo/client';
+import Sidebar from '@organisms/Sidebar/Sidebar';
 
 const GET_USER_AND_TRANSACTIONS = gql`
   query GetUserAndTransactions($id: Int!) {
@@ -318,6 +319,7 @@ const Dashboard = () => {
 
   return (
     <>
+    <Sidebar/>
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

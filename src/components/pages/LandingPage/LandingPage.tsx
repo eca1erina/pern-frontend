@@ -13,18 +13,14 @@ const LandingPage: React.FC = () => {
       hide();
     }, 1800);
     return () => clearTimeout(timer);
-  });
+  }, []);
 
   const handleLoginClick = () => {
     router.push('/login');
   };
 
-  const handleGetStartedClick = () => {
-    router.push('/signup');
-  };
-
   return (
-    <LandingTemplate onLoginClick={handleLoginClick} onGetStartedClick={handleGetStartedClick} />
+    <LandingTemplate onLoginClick={handleLoginClick} onGetStartedClick={handleLoginClick} />
   );
 };
 

@@ -21,6 +21,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useLoader } from '@/context/LoaderContext';
 import { useCurrency } from '@/context/CurrencyContext';
+import Sidebar from '@organisms/Sidebar/Sidebar';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -277,6 +278,7 @@ const Expenses = () => {
 
   return (
     <>
+    <Sidebar/>
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

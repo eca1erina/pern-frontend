@@ -23,6 +23,7 @@ import '../../organisms/Modal/AddIncomeModal.css';
 import toast from 'react-hot-toast';
 import { saveAs } from 'file-saver';
 import { useCurrency } from '@/context/CurrencyContext';
+import Sidebar from '@organisms/Sidebar/Sidebar';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -473,6 +474,7 @@ const Reports = () => {
 
   return (
     <>
+    <Sidebar/>
       <div style={{ cursor: 'pointer' }} onClick={() => router.push('/profile')}>
         <UserCard name={user?.name || 'User'} />
       </div>

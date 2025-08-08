@@ -10,6 +10,8 @@ import UserCard from '../../organisms/UserCard/UserCard';
 import { getData, putData } from '@/utils/api';
 import { useCurrency } from '@/context/CurrencyContext';
 import toast from 'react-hot-toast';
+import Icon from '@atoms/Icon/Icon';
+import Sidebar from '@organisms/Sidebar/Sidebar';
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -97,6 +99,11 @@ const ProfilePage = () => {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('user');
+    router.push('/login');
+  };
+
   const handleSavePassword = async () => {
     if (!userId) return;
     if (newPassword !== confirmPassword) {
@@ -122,6 +129,7 @@ const ProfilePage = () => {
 
   return (
     <>
+    <Sidebar></Sidebar>
       <div className="mainContent" style={{ alignItems: 'center' }}>
         <h1 className="header" style={{ alignSelf: 'flex-start' }}>
           Profile
@@ -302,6 +310,14 @@ const ProfilePage = () => {
             <div className={styles.accountDetailRow}>
               <span className={styles.accountDetailLabel}>Member Since</span>
               <span className={styles.accountDetailDate}>{joinDate}</span>
+            </div>
+            <div>
+              <button onClick={handleLogout} className="logout-btn">
+            <span className="logout-icon">
+              <Icon name="LogOut" size={20} />
+            </span>
+            <span>Logout</span>
+          </button>
             </div>
           </div>
         </div>
